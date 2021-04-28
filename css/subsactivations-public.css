@@ -1,0 +1,31 @@
+.ufields{
+    min-width: 300px;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+#subsactivations input {
+    width: 100%;
+    border: 1px solid #ddd;
+    margin: 0;
+    min-height: 50px;
+    max-height: 50px;
+    padding: inherit;
+    margin-bottom: 10px;
+}
+input#subsactivations-subtn {
+    border-style: none;
+    min-height: 50px;
+    max-height: 50px;
+    margin-top: 10px;
+    padding: initial;
+}
+input#subsactivations-subtn:hover{
+    transition: .3s;
+}
+#subsactivations input:active, #subsactivations input:focus{
+    outline: none;
+}
+.optional{
+    color: red;
+}
