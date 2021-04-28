@@ -50,7 +50,8 @@ function deactivate_subsactivations_cplgn(){
 add_action('admin_enqueue_scripts',function(){
     wp_register_script( SUBSACT_NAME, plugin_dir_url( __FILE__ ).'js/subsactivations-admin.js', array(), 
     microtime(), true );
-    wp_localize_script( SUBSACT_NAME, 'subsactivations_actions', array(
+    wp_enqueue_script(SUBSACT_NAME);
+    wp_localize_script( SUBSACT_NAME, 'admin_ajax_action', array(
         'ajaxurl' => admin_url( 'admin-ajax.php' )
     ) );
 });
@@ -72,26 +73,108 @@ add_action('wp_enqueue_scripts',function(){
 // Register Menu
 add_action('admin_menu', function(){
     add_menu_page( 'Activations', 'Activations', 'manage_options', 'activations', 'subsactivations_menupage_display', 'dashicons-admin-network', 45 );
+
+    add_settings_section( 'activations_colors_section', 'Activation Colors', '', 'activations_colors' );
+
+    //Activate Button
+    add_settings_field( 'subsactivations_activate_button', 'Activate Button', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_activate_button');
+    // Purchase Button
+    add_settings_field( 'subsactivations_purchase_button', 'Purchase Button', 'activations_purchase_button_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_purchase_button');
+    // Form text colors
+    add_settings_field( 'subsactivations_txt_color', 'Form text colors', 'subsactivations_txt_color_button_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_txt_color');
+    // Notification color
+    add_settings_field( 'subsactivations_notification_color', 'Notification color', 'subsactivations_notification_color_button_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_notification_color');
 });
+
+// activate Button colors
+function activations_activate_button_func(){
+    echo '<input type="color" name="subsactivations_activate_button" id="subsactivations_activate_button" value="'.(get_option( 'subsactivations_activate_button', '' ) ? get_option( 'subsactivations_activate_button', '' ):'#3580de').'">';
+}
+//purchase_button colors
+function activations_purchase_button_func(){
+    echo '<input type="color" name="subsactivations_purchase_button" id="subsactivations_purchase_button" value="'.(get_option( 'subsactivations_purchase_button', '' ) ? get_option( 'subsactivations_purchase_button', '' ):'#820182').'">';
+}
+//txt_color_button
+function subsactivations_txt_color_button_func(){
+    echo '<input type="color" name="subsactivations_txt_color" id="subsactivations_txt_color" value="'.(get_option( 'subsactivations_txt_color', '' ) ? get_option( 'subsactivations_txt_color', '' ):'#3a3a3a').'">';
+}
+//notification_color
+function subsactivations_notification_color_button_func(){
+    echo '<input type="color" name="subsactivations_notification_color" id="subsactivations_notification_color" value="'.(get_option( 'subsactivations_notification_color', '' ) ? get_option( 'subsactivations_notification_color', '' ):'#fbad5d').'">';
+}
+
+// subsactivations_reset_colors
+add_action("wp_ajax_subsactivations_reset_colors", "subsactivations_reset_colors");
+add_action("wp_ajax_nopriv_subsactivations_reset_colors", "subsactivations_reset_colors");
+function subsactivations_reset_colors(){
+    delete_option( 'subsactivations_activate_button' );
+    delete_option( 'subsactivations_purchase_button' );
+    delete_option( 'subsactivations_txt_color' );
+    delete_option( 'subsactivations_notification_color' );
+    echo 'Success';
+    wp_die();
+}
 
 // Menu callback funnction
 function subsactivations_menupage_display(){
     wp_enqueue_script(SUBSACT_NAME);
     ?>
-    <table class="form-table">
-        <tbody>
-            <tr>
-                <th scope="row">Empty Table</th>
-                <td>Will Using later</td>
-            </tr>
-        </tbody>
-    </table>
+    <style>
+        p.submit { display: inline-block; }
+        button#rest_color { padding: 7px 10px; background: red; border: none; outline: none; border-radius: 3px; margin-left: 10px; color: #fff; cursor: pointer; opacity: .7; } button#rest_color:hover{ opacity: 1;}
+    </style>
+    <?php
+    echo '<form action="options.php" method="post" id="activations_colors">';
+    echo '<h1>Activation Colors</h1><hr>';
+    echo '<table class="form-table">';
+
+    settings_fields( 'activations_colors_section' );
+    do_settings_fields( 'activations_colors', 'activations_colors_section' );
+    
+    echo '</table>';
+    submit_button();
+    echo '<button id="rest_color">Reset</button>';
+    echo '</form>';
+    ?>
     <?php
 }
 
 // Output with Shortcode
 add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
+
+/*
+ * Step 1. Add Link (Tab) to My Account menu
+ */
+add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
+function junu_actiovations_link( $menu_links ){
+ 
+	$menu_links = array_slice( $menu_links, 0, 5, true ) 
+	+ array( 'activations' => 'Activations' )
+	+ array_slice( $menu_links, 5, NULL, true );
+ 
+	return $menu_links;
+}
+
+/*
+ * Step 2. Register Permalink Endpoint
+ */
+add_action( 'init', 'junu_endpoints' );
+function junu_endpoints() {
+	add_rewrite_endpoint( 'activations', EP_PAGES );
+}
+
+/*
+ * Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
+*/
+add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
+function junu_my_account_endpoint_content() {
+	echo do_shortcode( '[activations_v1]' );
+}
 
 /**
  * { AJAX CALLING FOR INSERTING AND UPDATING }
@@ -109,27 +192,58 @@ function subsactivations_data_check(){
 
         if($data){
             $wpdb->update($table, array(
+                'account1' => $number_1,
                 'account2' => $number_2,
                 'username' => $current_user->display_name 
             ),array(
                 "user_id" => $current_user->ID
             ),array('%d','%d','%s'),array('%d'));
 
+            if ( !is_wp_error( $wpdb ) ) {
+
+                if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) == $number_2){
+                    echo wp_json_encode(array('changed' => 'Account lincese changed from <span class="number">'. intval($data->account1) .'</span> to  <span class="number">'. $number_1.'</span>'));
+                    wp_die();
+                }
+
+                if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) !== $number_2){
+                    echo wp_json_encode(array('changedboth' => 'Account lincese changed from <span class="number">'. intval($data->account1) .'</span> to <span class="number">'. $number_1 .'</span>', 'successboth' => 'Account <span class="number"> '.$number_2.' </span> is activated.'));
+                    wp_die();
+                }
+
+                if(!empty($number_2) && intval($data->account2) !== $number_2 && !empty($number_1) && intval($data->account1) == $number_1){
+                    echo wp_json_encode(array('success' => 'Account <span class="number"> '.$number_2.' </span> is activated.' ));
+                    wp_die();
+                }
+                
+                if(!empty($number_2) && intval($data->account2) == $number_2){
+                    echo wp_json_encode(array('error' => 'Already Exist!'));
+                    wp_die();
+                }
+                
+            }else{
+                echo wp_json_encode(array('error' => '🙄Error. Try again!'));
+                wp_die();
+            }
         }else{
             $wpdb->insert($table, array(
                 'user_id' => $current_user->ID,
                 'account1' => $number_1,
                 'account2' => $number_2,
                 'username' => $current_user->display_name
-            ),array('%d','%d','%d','%s')); 
-        }
+            ),array('%d','%d','%d','%s'));
 
-        if ( !is_wp_error( $wpdb ) ) {
-            echo wp_json_encode(array('success' => 'Success'));
-            wp_die();
-        }else{
-            echo wp_json_encode(array('error' => 'Error.'));
-            wp_die();
+            if ( !is_wp_error( $wpdb ) ) {
+                if(empty($number_2)){
+                    echo wp_json_encode(array('success' => 'Account <span class="number">'.$number_1.'</span> is activated.' ));
+                }else{
+                    echo wp_json_encode(array('success' => 'Account <span class="number"> '.$number_2.' </span>is activated.'));
+                }
+                wp_die();
+            }else{
+                echo wp_json_encode(array('error' => 'Error.'));
+                wp_die();
+            }
         }
         wp_die();
     }
