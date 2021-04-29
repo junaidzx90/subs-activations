@@ -56,7 +56,7 @@ jQuery(function ($) {
                 }
                 if (response.changedboth && response.successboth){
                     //Alert show
-                    junu_alert_info(response.changedboth+' - ( '+response.successboth+' )');
+                    junu_alert_info(response.changedboth+'<br>'+response.successboth);
                     $('#subsactivations-subtn').removeAttr('disabled').val('Activate');
                     return false;
                 }
