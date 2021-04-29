@@ -20,12 +20,14 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
+add_action( 'plugins_loaded', 'subsactivations_init' );
 function subsactivations_init() {
     if(!class_exists('WC_Subscriptions')){
         add_action( 'admin_notices', 'subsactivations_admin_nicess' );
     }
+    load_plugin_textdomain( 'subsactivations', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
-add_action( 'plugins_loaded', 'subsactivations_init' );
 
 function subsactivations_admin_nicess(){
     $message = sprintf(
@@ -232,8 +234,10 @@ function subsactivations_data_check(){
         $table = $wpdb->prefix.'subsactivations__v1';
         $data = $wpdb->get_row("SELECT * FROM $table WHERE user_id = $current_user->ID");
 
+        //For email
         $admin_email = get_option( 'admin_email' );
         $user_email = $current_user->user_email;
+        $subject = 'FP-('.$current_user->ID.')-('.$current_user->display_name.')';
 
         if($data){
             $wpdb->update($table, array(
@@ -252,13 +256,9 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email. ' Changed Licence from '.intval($data->account1).' to '.$number_1;
-                        wp_mail($admin_email,'Licence Changed #'.$number_1, $message);
+                        wp_mail($admin_email, $subject, $message);
                     }
 
-                    if(current_user_can( 'subscriber' )){
-                        $message = 'Changed Licence from '.intval($data->account1).' to '.$number_1;
-                        wp_mail($user_email,'Licence Changed #'.$number_1, $message);
-                    }
                     wp_die();
                 }
 
@@ -268,12 +268,7 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email. " Changed Licence from #".intval($data->account1)." to #".$number_1.".\n#".$number_2." accounts activated.";
-                        wp_mail($admin_email,'Account Activate #'.$number_2, $message);
-                    }
-
-                    if(current_user_can( 'subscriber' )){
-                        $message = "Changed Licence from #".intval($data->account1)." to #".$number_1.".\n#".$number_2." accounts activated.";
-                        wp_mail($user_email,'Your account has been activated!', $message);
+                        wp_mail($admin_email, $subject, $message);
                     }
                     
                     wp_die();
@@ -285,13 +280,9 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email.' Activated #'. $number_2.' account.';
-                        wp_mail($admin_email,'Account Activate #'.$number_2, $message);
+                        wp_mail($admin_email, $subject, $message);
                     }
 
-                    if(current_user_can( 'subscriber' )){
-                        $message = 'Activated #'. $number_2.' account.';
-                        wp_mail($user_email,'Your account has been activated!', $message);
-                    }
                     wp_die();
                 }
 
@@ -301,13 +292,9 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email.' activated #'. $number_1.' account.';
-                        wp_mail($admin_email,'Account Activate #'.$number_1,$message);
+                        wp_mail($admin_email,$subject,$message);
                     }
 
-                    if(current_user_can( 'subscriber' )){
-                        $message = 'Activated #'. $number_1.' account.';
-                        wp_mail($user_email,'Your account has been activated!', $message);
-                    }
                     wp_die();
                 }
                 
@@ -335,12 +322,7 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email.' activated '. $number_1.' account.';
-                        wp_mail($admin_email,'New User',$message);
-                    }
-
-                    if(current_user_can( 'subscriber' )){
-                        $message = 'Activated #'. $number_1.' account.';
-                        wp_mail($user_email,'Your account has been activated!',$message);
+                        wp_mail($admin_email, $subject ,$message);
                     }
                 }else{
                     echo wp_json_encode(array('success' => 'Account <span class="number"> '.$number_2.' </span>is activated.'));
@@ -348,12 +330,7 @@ function subsactivations_data_check(){
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
                         $message = $user_email.' activated #'. $number_2.' account.';
-                        wp_mail($admin_email,'New User',$message);
-                    }
-
-                    if(current_user_can( 'subscriber' )){
-                        $message = 'Activated #'. $number_2.' account.';
-                        wp_mail($admin_email,'Your account has been activated!',$message);
+                        wp_mail($admin_email, $subject, $message);
                     }
                 }
                 wp_die();

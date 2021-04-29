@@ -10,7 +10,7 @@ function subsactivations_output($atts){
             $url = get_option( 'subsactivations_url', '' );
         }
     }
-
+     
     // Colors Include
     require_once SUBSACT_PATH.'inc/subsactivations-colors.php';
     global $wpdb,$current_user;
