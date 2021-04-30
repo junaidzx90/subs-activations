@@ -28,8 +28,8 @@ function subsactivations_output($atts){
         ?>
             <form action="/" method="post" id="subsactivations">
                 <div class="ufields">
-                <!-- STEP 1: Active your Licenses STEP 1: Active your Licenses-->
-                <h3 class="section_title"><?php echo __((get_option('subsactivations_section_title')?get_option('subsactivations_section_title'):'STEP 1: Active your Licenses'), 'subsactivations') ?></h3>
+                <!-- TEXTS & TITLE COMES FROM CHECKOUT ACTIVATIONS PLUGIN-->
+                <h3 class="section_title"><?php echo __((get_option('subsactivations_section_title')?get_option('subsactivations_section_title'):'Active your Licenses'), 'subsactivations') ?></h3>
                 <p><?php echo __(get_option('subsactivations_section_text_content'), 'subsactivations') ?></p>
 
                     <?php
@@ -47,7 +47,6 @@ function subsactivations_output($atts){
                 </div>
             </form>
         <?php
-            echo do_shortcode( get_option('subsactivations_add_section2','') );
         else:
             ?>
             <div class="purchase_btnwrap">
@@ -57,7 +56,6 @@ function subsactivations_output($atts){
         endif;
     }else{
         print_r("Please contact to administrator!");
-        return;
     }
     return ob_get_clean();
 }

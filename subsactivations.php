@@ -27,7 +27,7 @@ if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_
 function subsactivations_admin_nicess(){
     $message = sprintf(
         /* translators: 1: Plugin Name 2: Elementor */
-        esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'subsactivations' ),
+        esc_html__( '%1$s requires %2$s to be installed and activated.', 'subsactivations' ),
         '<strong>' . esc_html__( 'Activations', 'subsactivations' ) . '</strong>',
         '<strong>' . esc_html__( 'Woocommerce Subscriptions', 'subsactivations' ) . '</strong>'
     );
@@ -104,17 +104,6 @@ add_action('admin_menu', function(){
     add_settings_field( 'subsactivations_url', 'Purchase Url', 'subsactivations_url_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_url');
 
-    add_settings_field( 'subsactivations_add_section2', 'Section 2 Shortcode', 'subsactivations_add_section2_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_add_section2');
-
-    // subsactivations_section_title
-    add_settings_field( 'subsactivations_section_title', 'Section Title', 'subsactivations_section_title_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_section_title');
-
-    // subsactivations_section_text_content
-    add_settings_field( 'subsactivations_section_text_content', 'Section Description', 'subsactivations_section_text_content_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_section_text_content');
-
     // Activate button
     add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
@@ -123,16 +112,16 @@ add_action('admin_menu', function(){
      * COLORS
      */
     //Activate/Dwonload Button
-    add_settings_field( 'subsactivations_activate_button', 'Activate/Dwonload Button', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
+    add_settings_field( 'subsactivations_activate_button', 'Activate', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_activate_button');
     // Purchase Button
     add_settings_field( 'subsactivations_purchase_button', 'Purchase Button', 'activations_purchase_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_purchase_button');
     // Section header color
-    add_settings_field( 'subsactivations_header_color', 'Section heading color', 'subsactivations_header_color_func', 'activations_colors', 'activations_colors_section');
+    add_settings_field( 'subsactivations_header_color', 'Heading color', 'subsactivations_header_color_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_header_color');
     // Section texts color
-    add_settings_field( 'subsactivations_txt_color', 'Section texts color', 'subsactivations_txt_color_func', 'activations_colors', 'activations_colors_section');
+    add_settings_field( 'subsactivations_txt_color', 'STexts color', 'subsactivations_txt_color_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_txt_color');
     // Notification color
     add_settings_field( 'subsactivations_notification_color', 'Notification color', 'subsactivations_notification_color_button_func', 'activations_colors', 'activations_colors_section');
@@ -147,20 +136,6 @@ function subsactivations_url_func(){
     echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
 }
 
-// Add section shortcode
-function subsactivations_add_section2_func(){
-    echo '<input type="text" name="subsactivations_add_section2" id="subsactivations_add_section2" value="'.(get_option( 'subsactivations_add_section2', '' ) ? esc_html(get_option( 'subsactivations_add_section2', '' )):'').'" placeholder="[checkout_activation_v1 url=""]">';
-}
-
-//subsactivations_section_title
-function subsactivations_section_title_func(){
-    echo '<input type="text" name="subsactivations_section_title" value="'.(get_option( 'subsactivations_section_title', '' ) ? get_option( 'subsactivations_section_title', '' ):'').'" placeholder="STEP 1: Active your Licenses">';
-}
-
-//subsactivations_section_title
-function subsactivations_section_text_content_func(){
-    echo '<textarea placeholder="Description" name="subsactivations_section_text_content" id="subsactivations_section_text_content" cols="23" style="resize: horizontal; max-width: 80%" rows="">'.(get_option( 'subsactivations_section_text_content', '' ) ? get_option( 'subsactivations_section_text_content', '' ):'').'</textarea>';
-}
 
 //subsactivations_section_title
 function subsactivations_section_activate_btn_func(){
@@ -215,6 +190,19 @@ function subsactivations_menupage_display(){
             button#rest_color { padding: 7px 10px; background: red; border: none; outline: none; border-radius: 3px; margin-left: 10px; color: #fff; cursor: pointer; opacity: .7; } button#rest_color:hover{ opacity: 1;}
         </style>
         <?php
+
+        echo '<form action="options.php" method="post" id="subsactivations_url">';
+        echo '<h1>Settings</h1>';
+        echo '<table class="form-table">';
+
+        settings_fields( 'subsactivations_addon_section' );
+        do_settings_fields( 'subsactivations_addon_page', 'subsactivations_addon_section' );
+
+        echo '</table>';
+        submit_button('Save');
+        echo '</form>';
+
+
         echo '<form action="options.php" method="post" id="activations_colors">';
         echo '<h1>Activation Colors</h1><hr>';
         echo '<table class="form-table">';
@@ -228,52 +216,12 @@ function subsactivations_menupage_display(){
         echo '</form>';
         ?>
         <?php
-
-        echo '<form action="options.php" method="post" id="subsactivations_url">';
-        echo '<h1>Settings</h1>';
-        echo '<table class="form-table">';
-
-        settings_fields( 'subsactivations_addon_section' );
-        do_settings_fields( 'subsactivations_addon_page', 'subsactivations_addon_section' );
-
-        echo '</table>';
-        submit_button('Save');
-        echo '</form>';
     }
 }
 
 // Output with Shortcode
 add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
-
-/*
-* Step 1. Add Link (Tab) to My Account menu
-*/
-add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
-function junu_actiovations_link( $menu_links ){
-
-    $menu_links = array_slice( $menu_links, 0, 5, true ) 
-    + array( 'activations' => 'Activations' )
-    + array_slice( $menu_links, 5, NULL, true );
-
-    return $menu_links;
-}
-
-/*
-* Step 2. Register Permalink Endpoint
-*/
-add_action( 'init', 'junu_endpoints' );
-function junu_endpoints() {
-    add_rewrite_endpoint( 'activations', EP_PAGES );
-}
-
-/*
-* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
-*/
-add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
-function junu_my_account_endpoint_content() {
-    echo do_shortcode( '[activations_v1]' );
-}
 
 /**
  * { AJAX CALLING FOR INSERTING AND UPDATING }
