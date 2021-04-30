@@ -1,46 +1,48 @@
 <?php
  /**
  *
- * @link              https://github.com/
+ * @link              https://github.com/mql4Expert/checkout_activation
  * @since             1.0.0
  * @package           subsactivations
  *
  * @wordpress-plugin
  * Plugin Name:       Activations
- * Plugin URI:        https://github.com/
+ * Plugin URI:        https://github.com/activations
  * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
  * Version:           1.0.0
- * Author:            Mql4Expert.com
- * Author URI:        Mql4Expert.com
+ * Author:            Mql4Expert
+ * Author URI:        https://github.com/mql4Expert/about
  * Text Domain:       subsactivations
  * Domain Path:       /languages
  */
 
+define( 'SUBSACT_NAME', 'subsactivations' );
+define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
+
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
+if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_PATH' ) ) {
 	die;
 }
 
-add_action( 'plugins_loaded', 'subsactivations_init' );
-function subsactivations_init() {
+function subsactivations_admin_nicess(){
+    $message = sprintf(
+        /* translators: 1: Plugin Name 2: Elementor */
+        esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'subsactivations' ),
+        '<strong>' . esc_html__( 'Activations', 'subsactivations' ) . '</strong>',
+        '<strong>' . esc_html__( 'Woocommerce Subscriptions', 'subsactivations' ) . '</strong>'
+    );
+
+    printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
+}
+
+add_action( 'plugins_loaded', 'subsactivations_dependency' );
+function subsactivations_dependency() {
     if(!class_exists('WC_Subscriptions')){
         add_action( 'admin_notices', 'subsactivations_admin_nicess' );
     }
     load_plugin_textdomain( 'subsactivations', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
-function subsactivations_admin_nicess(){
-    $message = sprintf(
-		/* translators: 1: Plugin Name 2: Elementor */
-		esc_html__( '"%1$s" requires "%2$s" to be installed and activated.', 'subsactivations' ),
-		'<strong>' . esc_html__( 'Activations', 'subsactivations' ) . '</strong>',
-		'<strong>' . esc_html__( 'Woocommerce Subscriptions', 'subsactivations' ) . '</strong>'
-	);
-
-	printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
-}
-define( 'SUBSACT_NAME', 'subsactivations' );
-define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
 
 register_activation_hook( __FILE__, 'activate_subsactivations_cplgn' );
 register_deactivation_hook( __FILE__, 'deactivate_subsactivations_cplgn' );
@@ -92,30 +94,84 @@ add_action('wp_enqueue_scripts',function(){
 // Register Menu
 add_action('admin_menu', function(){
     add_menu_page( 'Activations', 'Activations', 'manage_options', 'activations', 'subsactivations_menupage_display', 'dashicons-admin-network', 45 );
-    // For colors
-    add_settings_section( 'activations_colors_section', 'Activation Colors', '', 'activations_colors' );
-    // For url
-    add_settings_section( 'subsactivations_url_section', 'Purchase Url', '', 'subsactivations_url_page' );
 
-    //Activate Button
-    add_settings_field( 'subsactivations_activate_button', 'Activate Button', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
+    // For url
+    add_settings_section( 'subsactivations_addon_section', '', '', 'subsactivations_addon_page' );
+    // For colors
+    add_settings_section( 'activations_colors_section', '', '', 'activations_colors' );
+
+    // Settings
+    add_settings_field( 'subsactivations_url', 'Purchase Url', 'subsactivations_url_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_url');
+
+    add_settings_field( 'subsactivations_add_section2', 'Section 2 Shortcode', 'subsactivations_add_section2_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_add_section2');
+
+    // subsactivations_section_title
+    add_settings_field( 'subsactivations_section_title', 'Section Title', 'subsactivations_section_title_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_section_title');
+
+    // subsactivations_section_text_content
+    add_settings_field( 'subsactivations_section_text_content', 'Section Description', 'subsactivations_section_text_content_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_section_text_content');
+
+    // Activate button
+    add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
+
+    /**
+     * COLORS
+     */
+    //Activate/Dwonload Button
+    add_settings_field( 'subsactivations_activate_button', 'Activate/Dwonload Button', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_activate_button');
     // Purchase Button
     add_settings_field( 'subsactivations_purchase_button', 'Purchase Button', 'activations_purchase_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_purchase_button');
-    // Form text colors
-    add_settings_field( 'subsactivations_txt_color', 'Form text colors', 'subsactivations_txt_color_button_func', 'activations_colors', 'activations_colors_section');
+    // Section header color
+    add_settings_field( 'subsactivations_header_color', 'Section heading color', 'subsactivations_header_color_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_header_color');
+    // Section texts color
+    add_settings_field( 'subsactivations_txt_color', 'Section texts color', 'subsactivations_txt_color_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_txt_color');
     // Notification color
     add_settings_field( 'subsactivations_notification_color', 'Notification color', 'subsactivations_notification_color_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_notification_color');
-
-    // Url
-    add_settings_field( 'subsactivations_url', 'Purchase Url', 'subsactivations_url_func', 'subsactivations_url_page', 'subsactivations_url_section');
-    register_setting( 'subsactivations_url_section', 'subsactivations_url');
 });
 
-// activate Button colors
+/**
+ * SETTINGS
+ */
+// For url input
+function subsactivations_url_func(){
+    echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
+}
+
+// Add section shortcode
+function subsactivations_add_section2_func(){
+    echo '<input type="text" name="subsactivations_add_section2" id="subsactivations_add_section2" value="'.(get_option( 'subsactivations_add_section2', '' ) ? esc_html(get_option( 'subsactivations_add_section2', '' )):'').'" placeholder="[checkout_activation_v1 url=""]">';
+}
+
+//subsactivations_section_title
+function subsactivations_section_title_func(){
+    echo '<input type="text" name="subsactivations_section_title" value="'.(get_option( 'subsactivations_section_title', '' ) ? get_option( 'subsactivations_section_title', '' ):'').'" placeholder="STEP 1: Active your Licenses">';
+}
+
+//subsactivations_section_title
+function subsactivations_section_text_content_func(){
+    echo '<textarea placeholder="Description" name="subsactivations_section_text_content" id="subsactivations_section_text_content" cols="23" style="resize: horizontal; max-width: 80%" rows="">'.(get_option( 'subsactivations_section_text_content', '' ) ? get_option( 'subsactivations_section_text_content', '' ):'').'</textarea>';
+}
+
+//subsactivations_section_title
+function subsactivations_section_activate_btn_func(){
+    echo '<input type="text" name="subsactivations_section_activate_btn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'').'" placeholder="Activate">';
+}
+
+/**
+ * COLORS
+ */
+
+// activate/Dwonload Button colors
 function activations_activate_button_func(){
     echo '<input type="color" name="subsactivations_activate_button" id="subsactivations_activate_button" value="'.(get_option( 'subsactivations_activate_button', '' ) ? get_option( 'subsactivations_activate_button', '' ):'#3580de').'">';
 }
@@ -124,18 +180,16 @@ function activations_purchase_button_func(){
     echo '<input type="color" name="subsactivations_purchase_button" id="subsactivations_purchase_button" value="'.(get_option( 'subsactivations_purchase_button', '' ) ? get_option( 'subsactivations_purchase_button', '' ):'#820182').'">';
 }
 //txt_color_button
-function subsactivations_txt_color_button_func(){
+function subsactivations_header_color_func(){
+    echo '<input type="color" name="subsactivations_header_color" id="subsactivations_header_color" value="'.(get_option( 'subsactivations_header_color', '' ) ? get_option( 'subsactivations_header_color', '' ):'#3a3a3a').'">';
+}
+//txt_color_button
+function subsactivations_txt_color_func(){
     echo '<input type="color" name="subsactivations_txt_color" id="subsactivations_txt_color" value="'.(get_option( 'subsactivations_txt_color', '' ) ? get_option( 'subsactivations_txt_color', '' ):'#3a3a3a').'">';
 }
 //notification_color
 function subsactivations_notification_color_button_func(){
     echo '<input type="color" name="subsactivations_notification_color" id="subsactivations_notification_color" value="'.(get_option( 'subsactivations_notification_color', '' ) ? get_option( 'subsactivations_notification_color', '' ):'#fbad5d').'">';
-}
-
-
-// For url input
-function subsactivations_url_func(){
-    echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
 }
 
 // subsactivations_reset_colors
@@ -146,6 +200,7 @@ function subsactivations_reset_colors(){
     delete_option( 'subsactivations_purchase_button' );
     delete_option( 'subsactivations_txt_color' );
     delete_option( 'subsactivations_notification_color' );
+    delete_option('subsactivations_header_color');
     echo 'Success';
     wp_die();
 }
@@ -175,11 +230,11 @@ function subsactivations_menupage_display(){
         <?php
 
         echo '<form action="options.php" method="post" id="subsactivations_url">';
-        echo '<h1>Purchase Url</h1>';
+        echo '<h1>Settings</h1>';
         echo '<table class="form-table">';
 
-        settings_fields( 'subsactivations_url_section' );
-        do_settings_fields( 'subsactivations_url_page', 'subsactivations_url_section' );
+        settings_fields( 'subsactivations_addon_section' );
+        do_settings_fields( 'subsactivations_addon_page', 'subsactivations_addon_section' );
 
         echo '</table>';
         submit_button('Save');
@@ -192,32 +247,32 @@ add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
 
 /*
- * Step 1. Add Link (Tab) to My Account menu
- */
+* Step 1. Add Link (Tab) to My Account menu
+*/
 add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
 function junu_actiovations_link( $menu_links ){
- 
-	$menu_links = array_slice( $menu_links, 0, 5, true ) 
-	+ array( 'activations' => 'Activations' )
-	+ array_slice( $menu_links, 5, NULL, true );
- 
-	return $menu_links;
+
+    $menu_links = array_slice( $menu_links, 0, 5, true ) 
+    + array( 'activations' => 'Activations' )
+    + array_slice( $menu_links, 5, NULL, true );
+
+    return $menu_links;
 }
 
 /*
- * Step 2. Register Permalink Endpoint
- */
+* Step 2. Register Permalink Endpoint
+*/
 add_action( 'init', 'junu_endpoints' );
 function junu_endpoints() {
-	add_rewrite_endpoint( 'activations', EP_PAGES );
+    add_rewrite_endpoint( 'activations', EP_PAGES );
 }
 
 /*
- * Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
+* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
 */
 add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
 function junu_my_account_endpoint_content() {
-	echo do_shortcode( '[activations_v1]' );
+    echo do_shortcode( '[activations_v1]' );
 }
 
 /**
@@ -251,11 +306,11 @@ function subsactivations_data_check(){
             if ( !is_wp_error( $wpdb ) ) {
 
                 if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) == $number_2){
-                    echo wp_json_encode(array('changed' => 'Account licence changed from <span class="number">#'. intval($data->account1) .'</span> to  <span class="number">#'. $number_1.'</span>'));
+                    echo wp_json_encode(array('changed' => 'Account license changed from <span class="number">#'. intval($data->account1) .'</span> to  <span class="number">#'. $number_1.'</span>'));
                     
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
-                        $message = $user_email. ' Changed Licence from '.intval($data->account1).' to '.$number_1;
+                        $message = $user_email. ' Changed license from '.intval($data->account1).' to '.$number_1;
                         wp_mail($admin_email, $subject, $message);
                     }
 
@@ -263,11 +318,11 @@ function subsactivations_data_check(){
                 }
 
                 if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) !== $number_2){
-                    echo wp_json_encode(array('changedboth' => 'Account licence changed from <span class="number">#'. intval($data->account1) .'</span> to <span class="number">#'. $number_1 .'</span>', 'successboth' => 'Account <span class="number"> #'.$number_2.' </span> is activated.'));
+                    echo wp_json_encode(array('changedboth' => 'Account license changed from <span class="number">#'. intval($data->account1) .'</span> to <span class="number">#'. $number_1 .'</span>', 'successboth' => 'Account <span class="number"> #'.$number_2.' </span> is activated.'));
 
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
-                        $message = $user_email. " Changed Licence from #".intval($data->account1)." to #".$number_1.".\n#".$number_2." accounts activated.";
+                        $message = $user_email. " Changed license from #".intval($data->account1)." to #".$number_1.".\n#".$number_2." accounts activated.";
                         wp_mail($admin_email, $subject, $message);
                     }
                     

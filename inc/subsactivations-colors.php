@@ -21,6 +21,13 @@
                 echo '#3a3a3a';
             }
         ?>;
+        --subsactivations_heading_color: <?php 
+            if(get_option('subsactivations_header_color')){
+                echo get_option( 'subsactivations_header_color' );
+            }else{
+                echo '#3a3a3a';
+            }
+        ?>;
         --subsactivations_notification_color: <?php 
             if(get_option('subsactivations_notification_color')){
                 echo get_option( 'subsactivations_notification_color' );

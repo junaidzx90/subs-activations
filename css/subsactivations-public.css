@@ -14,14 +14,14 @@
     padding: inherit;
     margin-bottom: 10px;
 }
-input#subsactivations-subtn {
+inputinput[type='submit'],.downloadbtn {
     border-style: none;
     min-height: 50px;
     max-height: 50px;
     margin-top: 10px;
     padding: initial;
 }
-input#subsactivations-subtn:hover{
+inputinput[type='submit'],.downloadbtn:hover{
     transition: .3s;
 }
 
@@ -51,23 +51,37 @@ span.alert_info {
 a#purchase-btn {
     padding: 10px 20px;
     border-radius: 3px;
-    color: #fff;
+    color: #fff !important;
     opacity: .8;
 }
 a#purchase-btn:hover{
     opacity: 1;
 }
-
+h3.section_title {
+    margin-bottom: 9px;
+    color: var(--subsactivations_heading_color) !important;
+}
+.ufields p{
+    font-weight: 600;
+    color: var(--subsactivations_form_txt_color) !important;
+}
 /* COLORS */
 .alert_info{
     background-color: var(--subsactivations_notification_color);
 }
 .ufields input[type='number'],label{
-    color: var(--subsactivations_form_txt_color);
+    color: var(--subsactivations_form_txt_color) !important;
 }
 #purchase-btn{
     background-color: var(--subsactivations_purchase_btn_color);
 }
-#subsactivations-subtn{
+input[type='submit'],.downloadbtn{
+    color: #ffffff !important;
+    opacity: .8;
     background-color: var(--subsactivations_active_btn_color);
+}
+input[type='submit']:hover,.downloadbtn:hover{
+    transition: .3s;
+    opacity: 1;
+    background-color: var(--subsactivations_active_btn_color) !important;
 }
