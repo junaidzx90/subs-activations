@@ -29,8 +29,14 @@ function subsactivations_output($atts){
             <form action="/" method="post" id="subsactivations">
                 <div class="ufields">
                 <!-- TEXTS & TITLE COMES FROM CHECKOUT ACTIVATIONS PLUGIN-->
-                <h3 class="section_title"><?php echo __((get_option('subsactivations_section_title')?get_option('subsactivations_section_title'):'Active your Licenses'), 'subsactivations') ?></h3>
-                <p><?php echo __(get_option('subsactivations_section_text_content'), 'subsactivations') ?></p>
+
+                <?php
+                if(defined('CKOUT_NAME')){ ?>
+                    <h3 class="section_title"><?php echo __((get_option('subsactivations_section_title')?get_option('subsactivations_section_title'):'Active your Licenses'), 'subsactivations') ?></h3>
+                    <p><?php echo __(get_option('subsactivations_section_text_content'), 'subsactivations') ?></p>
+                    <?php
+                }
+                ?>
 
                     <?php
                     $table = $wpdb->prefix.'subsactivations__v1';
