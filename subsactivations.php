@@ -15,9 +15,15 @@
  * Text Domain:       subsactivations
  * Domain Path:       /languages
  */
-
+if (!isset($_SESSION)) session_start();
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
+// Do not use slash after end
+define( 'ACTIVATION_REST_URL', 'http://localhost/api_settingup/api' );
+
+define( 'REST_API_KEY', 'GJ5TY6G8IJ56HH87876JFJFT7HFFF' );
+define( 'ACTIVATION_REST_CREATE', 'create.php' );
+define( 'ACTIVATION_REST_UPDATE', 'update.php' );
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_PATH' ) ) {
@@ -219,9 +225,58 @@ function subsactivations_menupage_display(){
     }
 }
 
+
+
+/*
+* Step 1. Add Link (Tab) to My Account menu
+*/
+add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
+function junu_actiovations_link( $menu_links ){
+
+    $menu_links = array_slice( $menu_links, 0, 5, true ) 
+    + array( 'activations' => 'Activations' )
+    + array_slice( $menu_links, 5, NULL, true );
+
+    return $menu_links;
+}
+
+/*
+* Step 2. Register Permalink Endpoint
+*/
+add_action( 'init', 'junu_endpoints' );
+function junu_endpoints() {
+    add_rewrite_endpoint( 'activations', EP_PAGES );
+}
+
+/*
+* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
+*/
+add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
+function junu_my_account_endpoint_content() {
+    echo do_shortcode( '[activations_v1]' );
+}
+
+
 // Output with Shortcode
 add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
+
+function send_post_request_to_json($namespace, $data = array()){
+    if(!empty($data)){
+        $data = json_encode($data);
+        $url = ACTIVATION_REST_URL.'/'.$namespace;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        $obj = json_decode($result);
+
+        return $obj;
+    }
+}
 
 /**
  * { AJAX CALLING FOR INSERTING AND UPDATING }
@@ -234,6 +289,35 @@ function subsactivations_data_check(){
         $number_1 = intval($_POST['number_1']);
         $number_2 = intval($_POST['number_2']);
 
+
+        // Insert data if data not exist into external server
+        if(!$_SESSION['account1'] || !$_SESSION['account2']){
+            $_SESSION['account1'] = $number_1;
+            $_SESSION['account2'] = $number_2;
+
+            if(!empty($number_1)){
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "account_no" =>  $number_1,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+            }
+
+            if(!empty($number_2)){
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "account_no" =>  $number_2,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+            }
+        }
+        
         $table = $wpdb->prefix.'subsactivations__v1';
         $data = $wpdb->get_row("SELECT * FROM $table WHERE user_id = $current_user->ID");
 
@@ -250,6 +334,35 @@ function subsactivations_data_check(){
             ),array(
                 "user_id" => $current_user->ID
             ),array('%d','%d','%s'),array('%d'));
+
+            if(!empty($number_1)){
+                // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "old_account" =>  intval($_SESSION['account1']),
+                    "account_no" =>  $number_1,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
+                // Set number for identifying
+                $_SESSION['account1'] = $number_1;
+            }
+            if(!empty($number_2)){
+                // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "old_account" =>  intval($_SESSION['account2']),
+                    "account_no" =>  $number_2,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
+                 // Set number for identifying
+                $_SESSION['account2'] = $number_2;
+            }
 
             if ( !is_wp_error( $wpdb ) ) {
 
@@ -317,6 +430,31 @@ function subsactivations_data_check(){
                 'account2' => $number_2,
                 'username' => $current_user->display_name
             ),array('%d','%d','%d','%s'));
+
+            $_SESSION['account1'] = $number_1;
+            $_SESSION['account2'] = $number_2;
+
+            if(!empty($number_1)){
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "account_no" =>  $number_1,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+            }
+
+            if(!empty($number_2)){
+                $data = array(
+                    "key" =>  REST_API_KEY,
+                    "account_no" =>  $number_2,
+                    "user_name"  => $current_user->display_name,
+                    "version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                );
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+            }
 
             if ( !is_wp_error( $wpdb ) ) {
                 if(empty($number_2)){

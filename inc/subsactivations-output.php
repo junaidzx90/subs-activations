@@ -29,7 +29,6 @@ function subsactivations_output($atts){
             <form action="/" method="post" id="subsactivations">
                 <div class="ufields">
                 <!-- TEXTS & TITLE COMES FROM CHECKOUT ACTIVATIONS PLUGIN-->
-
                 <?php
                 if(defined('CKOUT_NAME')){ ?>
                     <h3 class="section_title"><?php echo __((get_option('subsactivations_section_title')?get_option('subsactivations_section_title'):'Active your Licenses'), 'subsactivations') ?></h3>
