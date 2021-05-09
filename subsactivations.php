@@ -132,6 +132,12 @@ add_action('admin_menu', function(){
     // Notification color
     add_settings_field( 'subsactivations_notification_color', 'Notification color', 'subsactivations_notification_color_button_func', 'activations_colors', 'activations_colors_section');
     register_setting( 'activations_colors_section', 'subsactivations_notification_color');
+    // version color
+    add_settings_field( 'subsactivations_version', 'Version', 'subsactivations_version_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_version');
+    // latestversion color
+    add_settings_field( 'subsactivations_latestversion', 'Latest Version', 'subsactivations_latestversion_func', 'activations_colors', 'activations_colors_section');
+    register_setting( 'activations_colors_section', 'subsactivations_latestversion');
 });
 
 /**
@@ -171,6 +177,14 @@ function subsactivations_txt_color_func(){
 //notification_color
 function subsactivations_notification_color_button_func(){
     echo '<input type="color" name="subsactivations_notification_color" id="subsactivations_notification_color" value="'.(get_option( 'subsactivations_notification_color', '' ) ? get_option( 'subsactivations_notification_color', '' ):'#fbad5d').'">';
+}
+//subsactivations_version
+function subsactivations_version_func(){
+    echo '<input type="number" name="subsactivations_version" id="subsactivations_version" value="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'').'" placeholder="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'1').'">';
+}
+//subsactivations_latestversion
+function subsactivations_latestversion_func(){
+    echo '<input type="number" name="subsactivations_latestversion" id="subsactivations_latestversion" value="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'').'" placeholder="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'1').'">';
 }
 
 // subsactivations_reset_colors
@@ -225,38 +239,6 @@ function subsactivations_menupage_display(){
     }
 }
 
-
-
-/*
-* Step 1. Add Link (Tab) to My Account menu
-*/
-add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
-function junu_actiovations_link( $menu_links ){
-
-    $menu_links = array_slice( $menu_links, 0, 5, true ) 
-    + array( 'activations' => 'Activations' )
-    + array_slice( $menu_links, 5, NULL, true );
-
-    return $menu_links;
-}
-
-/*
-* Step 2. Register Permalink Endpoint
-*/
-add_action( 'init', 'junu_endpoints' );
-function junu_endpoints() {
-    add_rewrite_endpoint( 'activations', EP_PAGES );
-}
-
-/*
-* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
-*/
-add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
-function junu_my_account_endpoint_content() {
-    echo do_shortcode( '[activations_v1]' );
-}
-
-
 // Output with Shortcode
 add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
@@ -299,9 +281,9 @@ function subsactivations_data_check(){
                 $data = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
             }
@@ -310,9 +292,9 @@ function subsactivations_data_check(){
                 $data = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
             }
@@ -341,9 +323,9 @@ function subsactivations_data_check(){
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account1']),
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
                 // Set number for identifying
@@ -355,9 +337,9 @@ function subsactivations_data_check(){
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account2']),
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
                  // Set number for identifying
@@ -438,9 +420,9 @@ function subsactivations_data_check(){
                 $data = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
             }
@@ -449,9 +431,9 @@ function subsactivations_data_check(){
                 $data = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('versions')? get_option('versions'):'1'),
-                    "latest_version"  => (get_option('versions')? get_option('versions'):'1'),
+                    "user_name"  => $current_user->user_login,
+                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
+                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
                 send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
             }
