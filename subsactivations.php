@@ -19,7 +19,7 @@ if (!isset($_SESSION)) session_start();
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
 // Do not use slash after end
-define( 'ACTIVATION_REST_URL', 'http://localhost/api_settingup/api' );
+define( 'ACTIVATION_REST_URL', 'https://ealicense.com/api_direct_activation/api/api' );
 
 define( 'REST_API_KEY', 'GJ5TY6G8IJ56HH87876JFJFT7HFFF' );
 define( 'ACTIVATION_REST_CREATE', 'create.php' );
@@ -47,8 +47,21 @@ function subsactivations_dependency() {
         add_action( 'admin_notices', 'subsactivations_admin_nicess' );
     }
     load_plugin_textdomain( 'subsactivations', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
 
+    // ONLY MOVIE CUSTOM TYPE POSTS
+    add_action( 'admin_init' , 'my_column_init' );
+    function my_column_init(){
+        add_filter('manage_edit-shop_subscription_columns', 'wp_shop_subscription_list_table_columnname');
+        add_filter('manage_edit-shop_order_columns', 'wp_shop_orders_list_table_columnname');
+        add_action('manage_shop_order_posts_custom_column','wp_wc_order_column_view');
+        add_action('manage_shop_subscription_posts_custom_column','wp_wc_subscription_column_view');
+    }
+    
+    // Set custom column in job table
+    if (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_subscription') {
+        // $this->jobs_list_table_css();
+    }
+}
 
 register_activation_hook( __FILE__, 'activate_subsactivations_cplgn' );
 register_deactivation_hook( __FILE__, 'deactivate_subsactivations_cplgn' );
@@ -114,6 +127,16 @@ add_action('admin_menu', function(){
     add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
 
+    // Hide Activation from order
+    add_settings_field( 'subsactivations_hide_order', 'Hide Activation from order', 'subsactivations_hide_order_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_order');
+    // Hide Activation from subscription
+    add_settings_field( 'subsactivations_hide_subscription', 'Hide Activation from subscription', 'subsactivations_hide_subscription_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_subscription');
+    // Hide Item from subscription
+    add_settings_field( 'subsactivations_hide_item', 'Hide Item from subscription', 'subsactivations_hide_item_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_item');
+
     /**
      * COLORS
      */
@@ -148,10 +171,22 @@ function subsactivations_url_func(){
     echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
 }
 
-
 //subsactivations_section_title
 function subsactivations_section_activate_btn_func(){
     echo '<input type="text" name="subsactivations_section_activate_btn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'').'" placeholder="Activate">';
+}
+
+//subsactivations_hide_order
+function subsactivations_hide_order_func(){
+    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_order','').' name="subsactivations_hide_order" value="'.get_option('subsactivations_hide_order','unchecked').'">';
+}
+//subsactivations_hide_subscription
+function subsactivations_hide_subscription_func(){
+    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_subscription','').' name="subsactivations_hide_subscription" value="'.get_option('subsactivations_hide_subscription','unchecked').'">';
+}
+//subsactivations_hide_item
+function subsactivations_hide_item_func(){
+    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_item','').' name="subsactivations_hide_item" value="'.get_option('subsactivations_hide_item','unchecked').'">';
 }
 
 /**
@@ -166,6 +201,7 @@ function activations_activate_button_func(){
 function activations_purchase_button_func(){
     echo '<input type="color" name="subsactivations_purchase_button" id="subsactivations_purchase_button" value="'.(get_option( 'subsactivations_purchase_button', '' ) ? get_option( 'subsactivations_purchase_button', '' ):'#820182').'">';
 }
+
 //txt_color_button
 function subsactivations_header_color_func(){
     echo '<input type="color" name="subsactivations_header_color" id="subsactivations_header_color" value="'.(get_option( 'subsactivations_header_color', '' ) ? get_option( 'subsactivations_header_color', '' ):'#3a3a3a').'">';
@@ -180,11 +216,11 @@ function subsactivations_notification_color_button_func(){
 }
 //subsactivations_version
 function subsactivations_version_func(){
-    echo '<input type="number" name="subsactivations_version" id="subsactivations_version" value="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'').'" placeholder="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'1').'">';
+    echo '<input step="0.01" type="number" name="subsactivations_version" id="subsactivations_version" value="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'').'" placeholder="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'1').'">';
 }
 //subsactivations_latestversion
 function subsactivations_latestversion_func(){
-    echo '<input type="number" name="subsactivations_latestversion" id="subsactivations_latestversion" value="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'').'" placeholder="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'1').'">';
+    echo '<input step="0.01" type="number" name="subsactivations_latestversion" id="subsactivations_latestversion" value="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'').'" placeholder="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'1').'">';
 }
 
 // subsactivations_reset_colors
@@ -465,4 +501,94 @@ function subsactivations_data_check(){
         wp_die();
     }
     wp_die();
+}
+
+/**
+ * Column lists for subscription table
+ */
+function wp_shop_subscription_list_table_columnname($defaults)
+{
+    unset($defaults['orders']);
+    unset($defaults['end_date']);
+    unset($defaults['last_payment_date']);
+    unset($defaults['next_payment_date']);
+    unset($defaults['trial_end_date']);
+    unset($defaults['start_date']);
+    unset($defaults['recurring_total']);
+    unset($defaults['order_title']);
+    unset($defaults['order_items']);
+
+    if(get_option( 'subsactivations_hide_subscription', '' ) == 'checked'){
+        $defaults['activations'] = 'Activations';
+    }
+    if(get_option( 'subsactivations_hide_item', '' ) == 'checked'){
+        $defaults['order_items'] = "Items";
+    }
+
+    $defaults['recurring_total'] = "Total";
+    $defaults['order_title'] = "Subscriptions";
+    $defaults['start_date'] = "Start Date";
+    $defaults['trial_end_date'] = "Trial End";
+    $defaults['next_payment_date']  = "Next Pay";
+    $defaults['last_payment_date'] = "Last order Date";
+    $defaults['end_date'] = "End Date";
+    $defaults['orders'] = "Orders";
+    return $defaults;
+}
+
+/**
+ * Column lists for order table
+ */
+function wp_shop_orders_list_table_columnname($defaults)
+{
+    unset($defaults['order_date']);
+    unset($defaults['order_status']);
+    unset($defaults['subscription_relationship']);
+    unset($defaults['order_total']);
+
+    if(get_option( 'subsactivations_hide_order', '' ) == 'checked'){
+        $defaults['activations'] = 'Activations';
+    }
+
+    $defaults['order_date'] = "Date";
+    $defaults['order_status'] = "Status";
+    $defaults['subscription_relationship'] = '<span class="subscription_head tips">Subscription Relationship</span>';
+    $defaults['order_total'] = "Total";
+    return $defaults;
+}
+
+// Get activations Numbers
+function get_activations_user_data($user_id){
+    global $wpdb;
+    $userdata = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}subsactivations__v1 WHERE user_id = $user_id");
+    $numbers = '';
+    if($userdata){
+        if(!empty($userdata->account1)){
+            $numbers = '<span>'.$userdata->account1.'</span>';
+        }
+        if(!empty($userdata->account2)){
+            $numbers .= '<span> / '.$userdata->account2.'</span>';
+        }
+    }
+    return $numbers;
+}
+
+// Order table column data
+function wp_wc_order_column_view($column_name)
+{
+    if ($column_name == 'activations') {
+        global $the_order;
+        $user_id = $the_order->get_customer_id();
+        echo get_activations_user_data($user_id);
+    }
+}
+
+//Subscription table column data
+function wp_wc_subscription_column_view($column_name)
+{
+    if ($column_name == 'activations') {
+        global $the_subscription;
+        $user_id = $the_subscription->get_customer_id();
+        echo get_activations_user_data($user_id);
+    }
 }
