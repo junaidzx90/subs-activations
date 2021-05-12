@@ -19,7 +19,7 @@ if (!isset($_SESSION)) session_start();
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
 // Do not use slash after end
-define( 'ACTIVATION_REST_URL', 'https://ealicense.com/api_direct_activation/api/api' );
+define( 'ACTIVATION_REST_URL', 'http://ealicense.com/api_direct_activation/api/api' );
 
 define( 'REST_API_KEY', 'GJ5TY6G8IJ56HH87876JFJFT7HFFF' );
 define( 'ACTIVATION_REST_CREATE', 'create.php' );
@@ -128,13 +128,13 @@ add_action('admin_menu', function(){
     register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
 
     // Hide Activation from order
-    add_settings_field( 'subsactivations_hide_order', 'Hide Activation from order', 'subsactivations_hide_order_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    add_settings_field( 'subsactivations_hide_order', 'Show Activation from order', 'subsactivations_hide_order_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_hide_order');
     // Hide Activation from subscription
-    add_settings_field( 'subsactivations_hide_subscription', 'Hide Activation from subscription', 'subsactivations_hide_subscription_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    add_settings_field( 'subsactivations_hide_subscription', 'Show Activation from subscription', 'subsactivations_hide_subscription_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_hide_subscription');
     // Hide Item from subscription
-    add_settings_field( 'subsactivations_hide_item', 'Hide Item from subscription', 'subsactivations_hide_item_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    add_settings_field( 'subsactivations_hide_item', 'Show Item from subscription', 'subsactivations_hide_item_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_hide_item');
 
     /**
@@ -314,25 +314,25 @@ function subsactivations_data_check(){
             $_SESSION['account2'] = $number_2;
 
             if(!empty($number_1)){
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
                     "user_name"  => $current_user->user_login,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
             }
 
             if(!empty($number_2)){
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
                     "user_name"  => $current_user->user_login,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
             }
         }
         
@@ -355,7 +355,7 @@ function subsactivations_data_check(){
 
             if(!empty($number_1)){
                 // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account1']),
                     "account_no" =>  $number_1,
@@ -363,13 +363,13 @@ function subsactivations_data_check(){
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_UPDATE, $datarest);
                 // Set number for identifying
                 $_SESSION['account1'] = $number_1;
             }
             if(!empty($number_2)){
                 // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account2']),
                     "account_no" =>  $number_2,
@@ -377,7 +377,7 @@ function subsactivations_data_check(){
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_UPDATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_UPDATE, $datarest);
                  // Set number for identifying
                 $_SESSION['account2'] = $number_2;
             }
@@ -453,25 +453,25 @@ function subsactivations_data_check(){
             $_SESSION['account2'] = $number_2;
 
             if(!empty($number_1)){
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
                     "user_name"  => $current_user->user_login,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
             }
 
             if(!empty($number_2)){
-                $data = array(
+                $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
                     "user_name"  => $current_user->user_login,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $data);
+                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
             }
 
             if ( !is_wp_error( $wpdb ) ) {
