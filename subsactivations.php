@@ -329,7 +329,7 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
-                    "old_account" =>  intval($_SESSION['account1']),
+                    "old_account" =>  intval($_SESSION['account2']),
                     "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
@@ -359,8 +359,8 @@ function subsactivations_data_check(){
                 // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
                 $datarest = array(
                     "key" =>  REST_API_KEY,
-                    "old_account" =>  intval($_SESSION['account1']),
                     "account_no" =>  $number_1,
+                    "old_account" =>  intval($_SESSION['account1']),
                     "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
@@ -458,6 +458,7 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
+                    "old_account" =>  intval($_SESSION['account1']),
                     "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
@@ -469,6 +470,7 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
+                    "old_account" =>  intval($_SESSION['account2']),
                     "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
