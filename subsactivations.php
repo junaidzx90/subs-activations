@@ -317,7 +317,8 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->user_login,
+                    "old_account" =>  intval($_SESSION['account1']),
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -328,7 +329,8 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->user_login,
+                    "old_account" =>  intval($_SESSION['account1']),
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -359,7 +361,7 @@ function subsactivations_data_check(){
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account1']),
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->user_login,
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -373,7 +375,7 @@ function subsactivations_data_check(){
                     "key" =>  REST_API_KEY,
                     "old_account" =>  intval($_SESSION['account2']),
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->user_login,
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -456,7 +458,7 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_1,
-                    "user_name"  => $current_user->user_login,
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -467,7 +469,7 @@ function subsactivations_data_check(){
                 $datarest = array(
                     "key" =>  REST_API_KEY,
                     "account_no" =>  $number_2,
-                    "user_name"  => $current_user->user_login,
+                    "user_name"  => $current_user->display_name,
                     "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
                     "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
                 );
@@ -591,4 +593,35 @@ function wp_wc_subscription_column_view($column_name)
         $user_id = $the_subscription->get_customer_id();
         echo get_activations_user_data($user_id);
     }
+}
+
+
+
+/*
+* Step 1. Add Link (Tab) to My Account menu
+*/
+add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
+function junu_actiovations_link( $menu_links ){
+
+    $menu_links = array_slice( $menu_links, 0, 5, true ) 
+    + array( 'activations' => 'Activations' )
+    + array_slice( $menu_links, 5, NULL, true );
+
+    return $menu_links;
+}
+
+/*
+* Step 2. Register Permalink Endpoint
+*/
+add_action( 'init', 'junu_endpoints' );
+function junu_endpoints() {
+    add_rewrite_endpoint( 'activations', EP_PAGES );
+}
+
+/*
+* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
+*/
+add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
+function junu_my_account_endpoint_content() {
+    echo do_shortcode( '[activations_v1]' );
 }
