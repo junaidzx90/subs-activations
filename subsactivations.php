@@ -127,6 +127,10 @@ add_action('admin_menu', function(){
     add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
 
+    // Post Id
+    add_settings_field( 'subsactivations_post_id', 'Post Id', 'subsactivations_post_id_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
+    register_setting( 'subsactivations_addon_section', 'subsactivations_post_id');
+
     // Hide Activation from order
     add_settings_field( 'subsactivations_hide_order', 'Show Activation from order', 'subsactivations_hide_order_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
     register_setting( 'subsactivations_addon_section', 'subsactivations_hide_order');
@@ -174,6 +178,10 @@ function subsactivations_url_func(){
 //subsactivations_section_title
 function subsactivations_section_activate_btn_func(){
     echo '<input type="text" name="subsactivations_section_activate_btn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'').'" placeholder="Activate">';
+}
+//subsactivations_post_id_func
+function subsactivations_post_id_func(){
+    echo '<input type="text" name="subsactivations_post_id" value="'.(get_option( 'subsactivations_post_id', '' ) ? get_option( 'subsactivations_post_id', '' ):'').'" placeholder="Post ID">';
 }
 
 //subsactivations_hide_order
@@ -278,6 +286,25 @@ function subsactivations_menupage_display(){
 // Output with Shortcode
 add_shortcode('activations_v1', 'subsactivations_output');
 require_once 'inc/subsactivations-output.php';
+
+add_shortcode('single_post_v1', 'activations_post_show');
+function activations_post_show(){
+    ob_start();
+    ?>
+    <div class="requires">
+    <?php
+    $post_id = get_option( 'subsactivations_post_id', 1765 );
+    $post = get_post($post_id);
+    if($post){
+        echo '<p>'.$post->post_content.'</p>';
+    }
+    ?>
+    </div>
+    <?php
+    $output = ob_get_contents();
+    ob_get_clean();
+    return $output;
+}
 
 function send_post_request_to_json($namespace, $data = array()){
     if(!empty($data)){
@@ -602,11 +629,11 @@ function wp_wc_subscription_column_view($column_name)
 /*
 * Step 1. Add Link (Tab) to My Account menu
 */
-add_filter ( 'woocommerce_account_menu_items', 'junu_actiovations_link', 40 );
-function junu_actiovations_link( $menu_links ){
+add_filter ( 'woocommerce_account_menu_items', 'junu_single_post_show', 40 );
+function junu_single_post_show( $menu_links ){
 
     $menu_links = array_slice( $menu_links, 0, 5, true ) 
-    + array( 'activations' => 'Activations' )
+    + array( 'single_post' => 'Single post' )
     + array_slice( $menu_links, 5, NULL, true );
 
     return $menu_links;
@@ -617,13 +644,13 @@ function junu_actiovations_link( $menu_links ){
 */
 add_action( 'init', 'junu_endpoints' );
 function junu_endpoints() {
-    add_rewrite_endpoint( 'activations', EP_PAGES );
+    add_rewrite_endpoint( 'single_post', EP_PAGES );
 }
 
 /*
 * Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
 */
-add_action( 'woocommerce_account_activations_endpoint', 'junu_my_account_endpoint_content' );
-function junu_my_account_endpoint_content() {
-    echo do_shortcode( '[activations_v1]' );
+add_action( 'woocommerce_account_single_post_endpoint', 'junu_my_account_endpoint_single_post' );
+function junu_my_account_endpoint_single_post() {
+    echo do_shortcode( '[single_post_v1]' );
 }
