@@ -18,19 +18,15 @@
 if (!isset($_SESSION)) session_start();
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
-// Do not use slash after end
-define( 'ACTIVATION_REST_URL', 'http://ealicense.com/api_direct_activation/api/api' );
+define( 'SUBSACT_URL', plugin_dir_url( __FILE__ ) );
 
-define( 'REST_API_KEY', 'GJ5TY6G8IJ56HH87876JFJFT7HFFF' );
-define( 'ACTIVATION_REST_CREATE', 'create.php' );
-define( 'ACTIVATION_REST_UPDATE', 'update.php' );
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_PATH' ) ) {
 	die;
 }
 
-function subsactivations_admin_nicess(){
+function subsactivations_admin_noticess(){
     $message = sprintf(
         /* translators: 1: Plugin Name 2: Elementor */
         esc_html__( '%1$s requires %2$s to be installed and activated.', 'subsactivations' ),
@@ -41,44 +37,39 @@ function subsactivations_admin_nicess(){
     printf( '<div class="notice notice-warning is-dismissible"><p>%1$s</p></div>', $message );
 }
 
-add_action( 'plugins_loaded', 'subsactivations_dependency' );
 function subsactivations_dependency() {
     if(!class_exists('WC_Subscriptions')){
-        add_action( 'admin_notices', 'subsactivations_admin_nicess' );
+        add_action( 'admin_notices', 'subsactivations_admin_noticess' );
     }
     load_plugin_textdomain( 'subsactivations', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
 
-    // ONLY MOVIE CUSTOM TYPE POSTS
-    add_action( 'admin_init' , 'my_column_init' );
-    function my_column_init(){
-        add_filter('manage_edit-shop_subscription_columns', 'wp_shop_subscription_list_table_columnname');
-        add_filter('manage_edit-shop_order_columns', 'wp_shop_orders_list_table_columnname');
-        add_action('manage_shop_order_posts_custom_column','wp_wc_order_column_view');
-        add_action('manage_shop_subscription_posts_custom_column','wp_wc_subscription_column_view');
-    }
-    
-    // Set custom column in job table
-    if (isset($_GET['post_type']) && $_GET['post_type'] == 'shop_subscription') {
-        // $this->jobs_list_table_css();
+// Update lic_activation inputs from admin menu
+function activations_update_lic_activations_inputs(){
+    if(isset($_POST['inputs_val'])){
+        $inputs = [];
+        foreach($_POST as $key => $input){
+            $inputs[$key] = $input;
+        }
+        array_pop($inputs);
+        foreach($inputs as $key => $val){
+            update_option( $key, $val);
+        }
     }
 }
 
-register_activation_hook( __FILE__, 'activate_subsactivations_cplgn' );
-register_deactivation_hook( __FILE__, 'deactivate_subsactivations_cplgn' );
+require_once plugin_dir_path( __FILE__ )."inc/activation_action_hooks.php";
+require_once plugin_dir_path( __FILE__ )."inc/activation_activate.php";
+require_once plugin_dir_path( __FILE__ )."inc/activation_menus.php";
+require_once plugin_dir_path( __FILE__ )."inc/activation_scripts.php";
+require_once plugin_dir_path( __FILE__ )."inc/activation_menu_items.php";
+require_once plugin_dir_path( __FILE__ )."inc/activation_myaccount_menus.php";
 
-// Activision function
-function activate_subsactivations_cplgn(){
-    global $wpdb;
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-
-    $subsactivations_v1 = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}subsactivations__v1` (
-        `ID` INT NOT NULL AUTO_INCREMENT,
-        `user_id` INT NOT NULL,
-        `username` VARCHAR(255) NOT NULL,
-        `account1` INT NOT NULL,
-        `account2` INT NOT NULL,
-        PRIMARY KEY (`ID`)) ENGINE = InnoDB";
-        dbDelta($subsactivations_v1);
+function my_column_init(){
+    add_filter('manage_edit-shop_subscription_columns', 'wp_shop_subscription_list_table_columnname');
+    add_filter('manage_edit-shop_order_columns', 'wp_shop_orders_list_table_columnname');
+    add_action('manage_shop_order_posts_custom_column','wp_wc_order_column_view');
+    add_action('manage_shop_subscription_posts_custom_column','wp_wc_subscription_column_view');
 }
 
 // Dectivision function
@@ -86,154 +77,7 @@ function deactivate_subsactivations_cplgn(){
     // Nothing For Now
 }
 
-// Admin Enqueue Scripts
-add_action('admin_enqueue_scripts',function(){
-    wp_register_script( SUBSACT_NAME, plugin_dir_url( __FILE__ ).'js/subsactivations-admin.js', array(), 
-    microtime(), true );
-    wp_enqueue_script(SUBSACT_NAME);
-    wp_localize_script( SUBSACT_NAME, 'admin_ajax_action', array(
-        'ajaxurl' => admin_url( 'admin-ajax.php' )
-    ) );
-});
-
-// WP Enqueue Scripts
-add_action('wp_enqueue_scripts',function(){
-    wp_register_style( SUBSACT_NAME, plugin_dir_url( __FILE__ ).'css/subsactivations-public.css', array(), microtime(), 'all' );
-    wp_enqueue_style(SUBSACT_NAME);
-
-    wp_register_script( SUBSACT_NAME, plugin_dir_url( __FILE__ ).'js/subsactivations-public.js', array(), 
-    microtime(), true );
-    wp_enqueue_script(SUBSACT_NAME);
-    wp_localize_script( SUBSACT_NAME, 'subsactivations_actions', array(
-        'ajaxurl' => admin_url( 'admin-ajax.php' ),
-        'nonce' => wp_create_nonce( 'nonces' )
-    ) );
-});
-
-// Register Menu
-add_action('admin_menu', function(){
-    add_menu_page( 'Activations', 'Activations', 'manage_options', 'activations', 'subsactivations_menupage_display', 'dashicons-admin-network', 45 );
-
-    // For url
-    add_settings_section( 'subsactivations_addon_section', '', '', 'subsactivations_addon_page' );
-    // For colors
-    add_settings_section( 'activations_colors_section', '', '', 'activations_colors' );
-
-    // Settings
-    add_settings_field( 'subsactivations_url', 'Purchase Url', 'subsactivations_url_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_url');
-
-    // Activate button
-    add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_section_activate_btn');
-
-    // Post Id
-    add_settings_field( 'subsactivations_post_id', 'Post Id', 'subsactivations_post_id_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_post_id');
-
-    // Hide Activation from order
-    add_settings_field( 'subsactivations_hide_order', 'Show Activation from order', 'subsactivations_hide_order_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_order');
-    // Hide Activation from subscription
-    add_settings_field( 'subsactivations_hide_subscription', 'Show Activation from subscription', 'subsactivations_hide_subscription_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_subscription');
-    // Hide Item from subscription
-    add_settings_field( 'subsactivations_hide_item', 'Show Item from subscription', 'subsactivations_hide_item_func', 'subsactivations_addon_page', 'subsactivations_addon_section');
-    register_setting( 'subsactivations_addon_section', 'subsactivations_hide_item');
-
-    /**
-     * COLORS
-     */
-    //Activate/Dwonload Button
-    add_settings_field( 'subsactivations_activate_button', 'Activate', 'activations_activate_button_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_activate_button');
-    // Purchase Button
-    add_settings_field( 'subsactivations_purchase_button', 'Purchase Button', 'activations_purchase_button_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_purchase_button');
-    // Section header color
-    add_settings_field( 'subsactivations_header_color', 'Heading color', 'subsactivations_header_color_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_header_color');
-    // Section texts color
-    add_settings_field( 'subsactivations_txt_color', 'STexts color', 'subsactivations_txt_color_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_txt_color');
-    // Notification color
-    add_settings_field( 'subsactivations_notification_color', 'Notification color', 'subsactivations_notification_color_button_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_notification_color');
-    // version color
-    add_settings_field( 'subsactivations_version', 'Version', 'subsactivations_version_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_version');
-    // latestversion color
-    add_settings_field( 'subsactivations_latestversion', 'Latest Version', 'subsactivations_latestversion_func', 'activations_colors', 'activations_colors_section');
-    register_setting( 'activations_colors_section', 'subsactivations_latestversion');
-});
-
-/**
- * SETTINGS
- */
-// For url input
-function subsactivations_url_func(){
-    echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
-}
-
-//subsactivations_section_title
-function subsactivations_section_activate_btn_func(){
-    echo '<input type="text" name="subsactivations_section_activate_btn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'').'" placeholder="Activate">';
-}
-//subsactivations_post_id_func
-function subsactivations_post_id_func(){
-    echo '<input type="text" name="subsactivations_post_id" value="'.(get_option( 'subsactivations_post_id', '' ) ? get_option( 'subsactivations_post_id', '' ):'').'" placeholder="Post ID">';
-}
-
-//subsactivations_hide_order
-function subsactivations_hide_order_func(){
-    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_order','').' name="subsactivations_hide_order" value="'.get_option('subsactivations_hide_order','unchecked').'">';
-}
-//subsactivations_hide_subscription
-function subsactivations_hide_subscription_func(){
-    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_subscription','').' name="subsactivations_hide_subscription" value="'.get_option('subsactivations_hide_subscription','unchecked').'">';
-}
-//subsactivations_hide_item
-function subsactivations_hide_item_func(){
-    echo '<input class="checked" type="checkbox" '.get_option('subsactivations_hide_item','').' name="subsactivations_hide_item" value="'.get_option('subsactivations_hide_item','unchecked').'">';
-}
-
-/**
- * COLORS
- */
-
-// activate/Dwonload Button colors
-function activations_activate_button_func(){
-    echo '<input type="color" name="subsactivations_activate_button" id="subsactivations_activate_button" value="'.(get_option( 'subsactivations_activate_button', '' ) ? get_option( 'subsactivations_activate_button', '' ):'#3580de').'">';
-}
-//purchase_button colors
-function activations_purchase_button_func(){
-    echo '<input type="color" name="subsactivations_purchase_button" id="subsactivations_purchase_button" value="'.(get_option( 'subsactivations_purchase_button', '' ) ? get_option( 'subsactivations_purchase_button', '' ):'#820182').'">';
-}
-
-//txt_color_button
-function subsactivations_header_color_func(){
-    echo '<input type="color" name="subsactivations_header_color" id="subsactivations_header_color" value="'.(get_option( 'subsactivations_header_color', '' ) ? get_option( 'subsactivations_header_color', '' ):'#3a3a3a').'">';
-}
-//txt_color_button
-function subsactivations_txt_color_func(){
-    echo '<input type="color" name="subsactivations_txt_color" id="subsactivations_txt_color" value="'.(get_option( 'subsactivations_txt_color', '' ) ? get_option( 'subsactivations_txt_color', '' ):'#3a3a3a').'">';
-}
-//notification_color
-function subsactivations_notification_color_button_func(){
-    echo '<input type="color" name="subsactivations_notification_color" id="subsactivations_notification_color" value="'.(get_option( 'subsactivations_notification_color', '' ) ? get_option( 'subsactivations_notification_color', '' ):'#fbad5d').'">';
-}
-//subsactivations_version
-function subsactivations_version_func(){
-    echo '<input step="0.01" type="number" name="subsactivations_version" id="subsactivations_version" value="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'').'" placeholder="'.(get_option( 'subsactivations_version', '' ) ? get_option( 'subsactivations_version', '' ):'1').'">';
-}
-//subsactivations_latestversion
-function subsactivations_latestversion_func(){
-    echo '<input step="0.01" type="number" name="subsactivations_latestversion" id="subsactivations_latestversion" value="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'').'" placeholder="'.(get_option( 'subsactivations_latestversion', '' ) ? get_option( 'subsactivations_latestversion', '' ):'1').'">';
-}
-
-// subsactivations_reset_colors
-add_action("wp_ajax_subsactivations_reset_colors", "subsactivations_reset_colors");
-add_action("wp_ajax_nopriv_subsactivations_reset_colors", "subsactivations_reset_colors");
+// Delete all colors
 function subsactivations_reset_colors(){
     delete_option( 'subsactivations_activate_button' );
     delete_option( 'subsactivations_purchase_button' );
@@ -247,293 +91,339 @@ function subsactivations_reset_colors(){
 // Menu callback funnction
 function subsactivations_menupage_display(){
     if(class_exists('WC_Subscriptions')){
-        wp_enqueue_script(SUBSACT_NAME);
-        ?>
-        <style>
-            p.submit { display: inline-block; }
-            button#rest_color { padding: 7px 10px; background: red; border: none; outline: none; border-radius: 3px; margin-left: 10px; color: #fff; cursor: pointer; opacity: .7; } button#rest_color:hover{ opacity: 1;}
-        </style>
-        <?php
-
-        echo '<form action="options.php" method="post" id="subsactivations_url">';
-        echo '<h1>Settings</h1>';
-        echo '<table class="form-table">';
-
-        settings_fields( 'subsactivations_addon_section' );
-        do_settings_fields( 'subsactivations_addon_page', 'subsactivations_addon_section' );
-
-        echo '</table>';
-        submit_button('Save');
-        echo '</form>';
-
-
-        echo '<form action="options.php" method="post" id="activations_colors">';
-        echo '<h1>Activation Colors</h1><hr>';
-        echo '<table class="form-table">';
-
-        settings_fields( 'activations_colors_section' );
-        do_settings_fields( 'activations_colors', 'activations_colors_section' );
-        
-        echo '</table>';
-        submit_button();
-        echo '<button id="rest_color">Reset</button>';
-        echo '</form>';
-        ?>
-        <?php
+        require_once plugin_dir_path( __FILE__ )."inc/subsactivation-admin-view.php";
     }
 }
 
-// Output with Shortcode
-add_shortcode('activations_v1', 'subsactivations_output');
+
 require_once 'inc/subsactivations-output.php';
 
-add_shortcode('single_post_v1', 'activations_post_show');
 function activations_post_show(){
     ob_start();
-    ?>
-    <div class="requires">
-    <?php
-    $post_id = get_option( 'subsactivations_post_id', 1765 );
-    $post = get_post($post_id);
-    if($post){
-        echo '<p>'.$post->post_content.'</p>';
+    global $current_user;
+    $form_accessed = false;
+    if(class_exists('WC_Subscriptions')){
+        $users_subscriptions = wcs_get_users_subscriptions($current_user->ID);
+        foreach ($users_subscriptions as $subscription){
+            if ($subscription->has_status(array('active'))) {
+                $form_accessed = true;
+            }
+        }
     }
-    ?>
-    </div>
-    <?php
-    $output = ob_get_contents();
-    ob_get_clean();
+    $product_a = get_option( 'subsactivations_product_a', 0 );
+    $product_b = get_option( 'subsactivations_product_b', 0 );
+    $product_c = get_option( 'subsactivations_product_c', 0 );
+
+    if(has_bought_items($current_user->ID, $product_a) || has_bought_items($current_user->ID, $product_b) || has_bought_items($current_user->ID, $product_c) || $form_accessed == true){
+        ?>
+        <div class="requires">
+        <?php
+        $post_id = get_option( 'subsactivations_post_id', 1765 );
+        $post = get_post($post_id);
+        if($post){
+            echo '<p>'.$post->post_content.'</p>';
+        }
+        ?>
+        </div>
+        <?php
+        $output = ob_get_contents();
+        ob_get_clean();
+        return $output;
+    }else{
+        // Colors Include
+        require_once SUBSACT_PATH.'inc/subsactivations-colors.php';
+        $url = get_option( 'subsactivations_url', '' );
+        ?>
+        <div class="purchase_btnwrap">
+            <a id="purchase-btn" href="<?php echo esc_url($url); ?>"> Please start the subscription </a>
+        </div>
+        <?php
+        $output = ob_get_contents();
+        ob_get_clean();
+        return $output;
+    }
+}
+
+// Input component for product mtid
+function mtids_inputs($data = array()){
+    $output = '';
+    $output .= '<input class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'" pos="'.$data['pos'].'">';
     return $output;
 }
 
-function send_post_request_to_json($namespace, $data = array()){
-    if(!empty($data)){
-        $data = json_encode($data);
-        $url = ACTIVATION_REST_URL.'/'.$namespace;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        $result = curl_exec($ch);
-        curl_close($ch);
-        $obj = json_decode($result);
-
-        return $obj;
+// Store mtids
+function subsactivations_mtids_store(){
+    if(!wp_verify_nonce( $_POST['nonce'], 'nonces' )){
+        die();
+    }
+    if(isset($_POST['data'])){
+        $datas = $_POST['data'];
+        foreach($datas as $data){
+            $pos = intval($data['pos']);
+            $product_id = intval($data['product_id']);
+            $values = intval($data['values']);
+            global $wpdb,$current_user;
+            
+            if($data['values'] == ""){
+                global $wpdb,$current_user;
+                $wpdb->query("DELETE FROM {$wpdb->prefix}subsactivation_products_v2 WHERE product_id = $product_id AND pos = $pos AND user_id = $current_user->ID");
+            }else{
+                if($entryID = $wpdb->get_var("SELECT ID FROM {$wpdb->prefix}subsactivation_products_v2 WHERE product_id = $product_id AND pos = $pos")){
+                    $wpdb->update($wpdb->prefix.'subsactivation_products_v2',array('product_id' => $product_id,'user_id' => $current_user->ID,'mtid' => $values,'pos' => $pos),array('ID' => $entryID),array('%d','%d','%d','%d'),array('%d'));
+                }else{
+                    $wpdb->insert($wpdb->prefix.'subsactivation_products_v2', array('product_id' => $product_id,'user_id' => $current_user->ID,'mtid' => $values,'pos' => $pos),array('%d','%d','%d','%d'));
+                }
+            }
+        }
+        die;
     }
 }
+
 
 /**
  * { AJAX CALLING FOR INSERTING AND UPDATING }
  */
-add_action("wp_ajax_subsactivations_data_check", "subsactivations_data_check");
-add_action("wp_ajax_nopriv_subsactivations_data_check", "subsactivations_data_check");
 function subsactivations_data_check(){
     if(wp_verify_nonce( $_POST['nonce'], 'nonces' )){
         global $wpdb,$current_user;
         $number_1 = intval($_POST['number_1']);
         $number_2 = intval($_POST['number_2']);
-
-
-        // Insert data if data not exist into external server
-        if(!$_SESSION['account1'] || !$_SESSION['account2']){
-            $_SESSION['account1'] = $number_1;
-            $_SESSION['account2'] = $number_2;
-
-            if(!empty($number_1)){
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "account_no" =>  $number_1,
-                    "old_account" =>  intval($_SESSION['account1']),
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
-            }
-
-            if(!empty($number_2)){
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "account_no" =>  $number_2,
-                    "old_account" =>  intval($_SESSION['account2']),
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
-            }
-        }
         
-        $table = $wpdb->prefix.'subsactivations__v1';
-        $data = $wpdb->get_row("SELECT * FROM $table WHERE user_id = $current_user->ID");
+        $table = $wpdb->prefix.'subsactivations__v2';
+        $account1 = $wpdb->get_row("SELECT * FROM $table WHERE user_id = $current_user->ID AND pos = 1");
+        $account2 = $wpdb->get_row("SELECT * FROM $table WHERE user_id = $current_user->ID AND pos = 2");
 
         //For email
         $admin_email = get_option( 'admin_email' );
         $user_email = $current_user->user_email;
         $subject = 'FP-('.$current_user->ID.')-('.$current_user->display_name.')';
 
-        if($data){
+        // Update account 1
+        if($account1->account_number){
             $wpdb->update($table, array(
-                'account1' => $number_1,
-                'account2' => $number_2,
+                'account_number' => $number_1,
                 'username' => $current_user->display_name 
             ),array(
-                "user_id" => $current_user->ID
-            ),array('%d','%d','%s'),array('%d'));
+                "user_id" => $current_user->ID,
+                "pos" => 1,
+            ),array('%d','%s'),array('%d','%d'));
+        }
 
-            if(!empty($number_1)){
-                // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "account_no" =>  $number_1,
-                    "old_account" =>  intval($_SESSION['account1']),
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_UPDATE, $datarest);
-                // Set number for identifying
-                $_SESSION['account1'] = $number_1;
-            }
-            if(!empty($number_2)){
-                // UPDATE $number_1 DATA TO EXTERNAL DB (REST URL)
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "old_account" =>  intval($_SESSION['account2']),
-                    "account_no" =>  $number_2,
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_UPDATE, $datarest);
-                 // Set number for identifying
-                $_SESSION['account2'] = $number_2;
-            }
+        // Update acccount 2
+        if($account2->account_number){
+            $wpdb->update($table, array(
+                'account_number' => $number_2,
+                'username' => $current_user->display_name 
+            ),array(
+                "user_id" => $current_user->ID,
+                "pos" => 2,
+            ),array('%d','%s'),array('%d','%d'));
+        }
 
-            if ( !is_wp_error( $wpdb ) ) {
-
-                if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) == $number_2){
-                    echo wp_json_encode(array('changed' => 'Account license changed from <span class="number">#'. intval($data->account1) .'</span> to  <span class="number">#'. $number_1.'</span>'));
-                    
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email. ' Changed license from '.intval($data->account1).' to '.$number_1;
-                        wp_mail($admin_email, $subject, $message);
-                    }
-
-                    wp_die();
-                }
-
-                if(!empty($number_1) && intval($data->account1) !== $number_1 && !empty($number_2) && intval($data->account2) !== $number_2){
-                    echo wp_json_encode(array('changedboth' => 'Account license changed from <span class="number">#'. intval($data->account1) .'</span> to <span class="number">#'. $number_1 .'</span>', 'successboth' => 'Account <span class="number"> #'.$number_2.' </span> is activated.'));
-
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email. " Changed license from #".intval($data->account1)." to #".$number_1.".\n#".$number_2." accounts activated.";
-                        wp_mail($admin_email, $subject, $message);
-                    }
-                    
-                    wp_die();
-                }
-
-                if(!empty($number_2) && intval($data->account2) !== $number_2 && !empty($number_1) && intval($data->account1) == $number_1){
-                    echo wp_json_encode(array('success' => 'Account <span class="number"> #'.$number_2.' </span> is activated.' ));
-
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email.' Activated #'. $number_2.' account.';
-                        wp_mail($admin_email, $subject, $message);
-                    }
-
-                    wp_die();
-                }
-
-                if(empty($number_2) && !empty($number_1)){
-                    echo wp_json_encode(array('success' => 'Account <span class="number"> #'.$number_1.' </span> is activated.' ));
-
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email.' activated #'. $number_1.' account.';
-                        wp_mail($admin_email,$subject,$message);
-                    }
-
-                    wp_die();
-                }
-                
-                if(!empty($number_2) && intval($data->account2) == $number_2){
-                    echo wp_json_encode(array('error' => 'Already Exist!'));
-                    wp_die();
-                }
-                
-            }else{
-                echo wp_json_encode(array('error' => '🙄Error. Try again!'));
-                wp_die();
-            }
-        }else{
+        // Insert account 1
+        if(!$account1->account_number){
             $wpdb->insert($table, array(
                 'user_id' => $current_user->ID,
-                'account1' => $number_1,
-                'account2' => $number_2,
-                'username' => $current_user->display_name
-            ),array('%d','%d','%d','%s'));
+                'account_number' => $number_1,
+                'username' => $current_user->display_name,
+                "pos" => 1,
+            ),array('%d','%d','%s','%d'));
+        }
 
-            $_SESSION['account1'] = $number_1;
-            $_SESSION['account2'] = $number_2;
-
-            if(!empty($number_1)){
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "account_no" =>  $number_1,
-                    "old_account" =>  intval($_SESSION['account1']),
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
+        // Insert account 2
+        if(!$account2->account_number){
+            $wpdb->insert($table, array(
+                'user_id' => $current_user->ID,
+                'account_number' => $number_2,
+                'username' => $current_user->display_name,
+                "pos" => 2,
+            ),array('%d','%d','%s','%d'));
+        }
+  
+        // Manage Notifications & Messages
+        if ( !is_wp_error( $wpdb ) ) {
+            if(!empty($number_2) && intval($account2->account_number) == $number_2 && empty($number_1)){
+                echo wp_json_encode(array('error' => 'Already Exist!'));
+                wp_die();
             }
 
-            if(!empty($number_2)){
-                $datarest = array(
-                    "key" =>  REST_API_KEY,
-                    "account_no" =>  $number_2,
-                    "old_account" =>  intval($_SESSION['account2']),
-                    "user_name"  => $current_user->display_name,
-                    "version"  => (get_option('subsactivations_version')? get_option('subsactivations_version'):'1'),
-                    "latest_version"  => (get_option('subsactivations_latestversion')? get_option('subsactivations_latestversion'):'1'),
-                );
-                send_post_request_to_json(ACTIVATION_REST_CREATE, $datarest);
+            if(!empty($number_2) && intval($account2->account_number) == $number_2 && !empty($number_1) && intval($account1->account_number) == $number_1){
+                echo wp_json_encode(array('error' => 'Already Exist!'));
+                wp_die();
+            }
+            if(!empty($number_1) && intval($account1->account_number) == $number_1 && empty($number_2)){
+                echo wp_json_encode(array('error' => 'Already Exist!'));
+                wp_die();
             }
 
-            if ( !is_wp_error( $wpdb ) ) {
-                if(empty($number_2)){
-                    echo wp_json_encode(array('success' => 'Account <span class="number">'.$number_1.'</span> is activated.' ));
+            if(!empty($number_1) && intval($account1->account_number) == $number_1 && !empty($number_2) && intval($account2->account_number) == $number_2){
+                echo wp_json_encode(array('error' => 'Already Exist!'));
+                wp_die();
+            }
 
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email.' activated '. $number_1.' account.';
-                        wp_mail($admin_email, $subject ,$message);
-                    }
-                }else{
-                    echo wp_json_encode(array('success' => 'Account <span class="number"> '.$number_2.' </span>is activated.'));
-                    
-                    // Send to admin
-                    if(!current_user_can( 'administrator' )){
-                        $message = $user_email.' activated #'. $number_2.' account.';
-                        wp_mail($admin_email, $subject, $message);
-                    }
+            if(!empty($number_1) && intval($account1->account_number) !== $number_1 && !empty($number_2) && intval($account2->account_number) == $number_2){
+                echo wp_json_encode(array('changed' => 'Account license changed from <span class="number">#'. intval($account1->account_number) .'</span> to  <span class="number">#'. $number_1.'</span>'));
+                
+                // Send to admin
+                if(!current_user_can( 'administrator' )){
+                    $message = $user_email. ' Changed license from '.intval($account1->account_number).' to '.$number_1;
+                    wp_mail($admin_email, $subject, $message);
                 }
-                wp_die();
-            }else{
-                echo wp_json_encode(array('error' => 'Error.'));
+    
                 wp_die();
             }
+    
+            if(!empty($number_1) && intval($account1->account_number) !== $number_1 && !empty($number_2) && intval($account2->account2) !== $number_2){
+                echo wp_json_encode(array('changedboth' => 'Account license changed from <span class="number">#'. intval($account1->account_number) .'</span> to <span class="number">#'. $number_1 .'</span>', 'successboth' => 'Account <span class="number"> #'.$number_2.' </span> is activated.'));
+    
+                // Send to admin
+                if(!current_user_can( 'administrator' )){
+                    $message = $user_email. " Changed license from #".intval($account1->account_number)." to #".$number_1.".\n#".$number_2." accounts activated.";
+                    wp_mail($admin_email, $subject, $message);
+                }
+                
+                wp_die();
+            }
+    
+            if(!empty($number_2) && intval($account2->account_number) !== $number_2 && !empty($number_1) && intval($account1->account_number) == $number_1){
+                echo wp_json_encode(array('success' => 'Account <span class="number"> #'.$number_2.' </span> is activated.' ));
+    
+                // Send to admin
+                if(!current_user_can( 'administrator' )){
+                    $message = $user_email.' Activated #'. $number_2.' account.';
+                    wp_mail($admin_email, $subject, $message);
+                }
+    
+                wp_die();
+            }
+    
+            if(empty($number_2) && !empty($number_1)){
+                echo wp_json_encode(array('success' => 'Account <span class="number"> #'.$number_1.' </span> is activated.' ));
+    
+                // Send to admin
+                if(!current_user_can( 'administrator' )){
+                    $message = $user_email.' activated #'. $number_1.' account.';
+                    wp_mail($admin_email,$subject,$message);
+                }
+            }else{
+                // Send to admin
+                if(!current_user_can( 'administrator' )){
+                    $message = $user_email.' activated #'. $number_2.' account.';
+                    wp_mail($admin_email, $subject, $message);
+                }
+                echo wp_json_encode(array('success' => 'Account <span class="number"> '.$number_2.' </span>is activated.'));
+            }
+        }else{
+            echo wp_json_encode(array('error' => '🙄Error. Try again!'));
+            wp_die();
         }
         wp_die();
     }
     wp_die();
 }
 
+// Has bought products
+function has_bought_items( $user_var = 0,  $product_ids = 0 ) {
+    global $wpdb;
+    
+    // Based on user ID (registered users)
+    if ( is_numeric( $user_var) ) { 
+        $meta_key     = '_customer_user';
+        $meta_value   = $user_var == 0 ? (int) get_current_user_id() : (int) $user_var;
+    } 
+    // Based on billing email (Guest users)
+    else { 
+        $meta_key     = '_billing_email';
+        $meta_value   = sanitize_email( $user_var );
+    }
+    
+    $paid_statuses    = array_map( 'esc_sql', wc_get_is_paid_statuses() );
+    $product_ids      = is_array( $product_ids ) ? implode(',', $product_ids) : $product_ids;
+
+    $line_meta_value  = $product_ids !=  ( 0 || '' ) ? 'AND woim.meta_value IN ('.$product_ids.')' : 'AND woim.meta_value != 0';
+
+    // Count the number of products
+    $count = $wpdb->get_var( "
+        SELECT COUNT(p.ID) FROM {$wpdb->prefix}posts AS p
+        INNER JOIN {$wpdb->prefix}postmeta AS pm ON p.ID = pm.post_id
+        INNER JOIN {$wpdb->prefix}woocommerce_order_items AS woi ON p.ID = woi.order_id
+        INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS woim ON woi.order_item_id = woim.order_item_id
+        WHERE p.post_status IN ( 'wc-" . implode( "','wc-", $paid_statuses ) . "' )
+        AND pm.meta_key = '$meta_key'
+        AND pm.meta_value = '$meta_value'
+        AND woim.meta_key IN ( '_product_id', '_variation_id' ) $line_meta_value 
+    " );
+
+    if($product_ids == ''){
+        return 0;
+    }else{
+        // Return true if count is higher than 0 (or false)
+        return $count; 
+    }
+   
+}
+
+// Get order id by product id
+function get_orders_ids_by_product_id( $product_id ) {
+    global $wpdb;
+    
+    // Define HERE the orders status to include in
+    $orders_statuses = "'wc-completed', 'wc-processing', 'wc-on-hold'";
+
+    # Get All defined statuses Orders IDs for a defined product ID (or variation ID)
+    return $wpdb->get_var( "
+        SELECT DISTINCT woi.order_id
+        FROM {$wpdb->prefix}woocommerce_order_itemmeta as woim, 
+             {$wpdb->prefix}woocommerce_order_items as woi, 
+             {$wpdb->prefix}posts as p
+        WHERE  woi.order_item_id = woim.order_item_id
+        AND woi.order_id = p.ID
+        AND p.post_status IN ( $orders_statuses )
+        AND woim.meta_key IN ( '_product_id', '_variation_id' )
+        AND woim.meta_value LIKE '$product_id'
+        ORDER BY woi.order_item_id DESC"
+    );
+}
+
+/**
+ * When user buy defined products
+ */
+add_action( 'woocommerce_order_status_completed', 'moresell_order_processing', 10, 1);
+function moresell_order_processing($order_id){
+    global $wpdb,$current_user;
+    $order = wc_get_order( $order_id );
+    $items = $order->get_items();
+
+    $subscriptions = wcs_get_subscriptions_for_order($order, array('order_type' => 'parent'));
+    $is_subscription = false;
+    if(!empty($subscriptions)){
+        $is_subscription = true;
+    }    
+
+    $ordered_pid = 0;
+    foreach ( $items as $item ) {
+        $ordered_pid = $item->get_product_id();
+    }
+
+    $defined = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}options WHERE option_name LIKE 'product_id_%'");
+    if($defined){
+        $i =1;
+        foreach($defined as $id){
+            if(intval($id->option_value == $ordered_pid)){
+                if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Orderno = $order_id AND Userid = {$current_user->ID}")){
+                    $insert = $wpdb->insert($wpdb->prefix.'lic_activations',array(
+                        'Orderno' => $order_id,
+                        'Userid' => $current_user->ID,
+                        'Editable' => $is_subscription,
+                        'UserName' => $current_user->display_name,
+                        'Prodcode' => get_option('product_code_'.$i)
+                    ),array('$d','$d','$f','$s','$s'));
+                }
+            }
+            $i++;
+        }
+    }
+}
 /**
  * Column lists for subscription table
  */
@@ -591,7 +481,7 @@ function wp_shop_orders_list_table_columnname($defaults)
 // Get activations Numbers
 function get_activations_user_data($user_id){
     global $wpdb;
-    $userdata = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}subsactivations__v1 WHERE user_id = $user_id");
+    $userdata = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}subsactivations__v2 WHERE user_id = $user_id");
     $numbers = '';
     if($userdata){
         if(!empty($userdata->account1)){
@@ -622,35 +512,4 @@ function wp_wc_subscription_column_view($column_name)
         $user_id = $the_subscription->get_customer_id();
         echo get_activations_user_data($user_id);
     }
-}
-
-
-
-/*
-* Step 1. Add Link (Tab) to My Account menu
-*/
-add_filter ( 'woocommerce_account_menu_items', 'junu_single_post_show', 40 );
-function junu_single_post_show( $menu_links ){
-
-    $menu_links = array_slice( $menu_links, 0, 5, true ) 
-    + array( 'single_post' => 'Single post' )
-    + array_slice( $menu_links, 5, NULL, true );
-
-    return $menu_links;
-}
-
-/*
-* Step 2. Register Permalink Endpoint
-*/
-add_action( 'init', 'junu_endpoints' );
-function junu_endpoints() {
-    add_rewrite_endpoint( 'single_post', EP_PAGES );
-}
-
-/*
-* Step 3. Content for the new page in My Account, woocommerce_account_{ENDPOINT NAME}_endpoint
-*/
-add_action( 'woocommerce_account_single_post_endpoint', 'junu_my_account_endpoint_single_post' );
-function junu_my_account_endpoint_single_post() {
-    echo do_shortcode( '[single_post_v1]' );
 }

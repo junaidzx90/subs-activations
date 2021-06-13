@@ -9,7 +9,8 @@ jQuery(function ($) {
         }, 6000);
     }
 
-    $('#subsactivations').submit(function (e) {
+    // Subscription account number
+    $('#subsactivations-subtn').on("click", function (e) {
         e.preventDefault();
 
         let number_1 = $('#ac_number_1').val();
@@ -42,25 +43,59 @@ jQuery(function ($) {
                     $('#subsactivations-subtn').removeAttr('disabled').val('Activate');
                     return false;
                 }
-                if (response.error){
+                if (response.error) {
                     //Alert show
                     junu_alert_info(response.error);
                     $('#subsactivations-subtn').removeAttr('disabled').val('Activate');
                     return false;
                 }
-                if (response.changed){
+                if (response.changed) {
                     //Alert show
                     junu_alert_info(response.changed);
                     $('#subsactivations-subtn').removeAttr('disabled').val('Activate');
                     return false;
                 }
-                if (response.changedboth && response.successboth){
+                if (response.changedboth && response.successboth) {
                     //Alert show
-                    junu_alert_info(response.changedboth+'<br>'+response.successboth);
+                    junu_alert_info(response.changedboth + '<br>' + response.successboth);
                     $('#subsactivations-subtn').removeAttr('disabled').val('Activate');
                     return false;
                 }
             }
         });
-    })
+    });
+
+    // Product mtids
+    $('#subsactivations-mtidsbtn').on("click", function (e) {
+        btn = $(this);
+        e.preventDefault();
+
+        let data = []
+        $('.mtids').each(function () {
+            let pos = $(this).attr('pos');
+            let product_id = $(this).attr('p-id');
+            let values = $(this).val();
+            data.push({
+                'pos': pos,
+                'product_id': product_id,
+                'values': values,
+            });
+        });
+    
+        $.ajax({
+            type: "post",
+            url: subsactivations_actions.ajaxurl,
+            data: {
+                action: 'subsactivations_mtids_store',
+                data:data,
+                nonce: subsactivations_actions.nonce
+            },
+            beforeSend: () => {
+                btn.prop('disabled', true).val('Activating...');
+            },
+            success: function (response) {
+                btn.removeAttr('disabled').val('Activate');
+            }
+        });
+    });
 });

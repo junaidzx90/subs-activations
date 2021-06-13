@@ -1,5 +1,4 @@
 jQuery(function ($) {
-
     $('.checked').on('click', function () {
         if (!$(this).val() || $(this).val() == 'unchecked') {
             $(this).val('checked');
