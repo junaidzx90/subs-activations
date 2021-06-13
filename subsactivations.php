@@ -15,11 +15,10 @@
  * Text Domain:       subsactivations
  * Domain Path:       /languages
  */
-if (!isset($_SESSION)) session_start();
+
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SUBSACT_URL', plugin_dir_url( __FILE__ ) );
-
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_PATH' ) ) {
