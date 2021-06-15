@@ -19,7 +19,9 @@
 define( 'SUBSACT_NAME', 'subsactivations' );
 define( 'SUBSACT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SUBSACT_URL', plugin_dir_url( __FILE__ ) );
-
+register_activation_hook( __FILE__, 'activate_subsactivations_cplgn' );
+register_deactivation_hook( __FILE__, 'deactivate_subsactivations_cplgn' );
+require_once plugin_dir_path( __FILE__ )."inc/activation_activate.php";
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_PATH' ) ) {
 	die;
@@ -46,19 +48,113 @@ function subsactivations_dependency() {
 // Update lic_activation inputs from admin menu
 function activations_update_lic_activations_inputs(){
     if(isset($_POST['inputs_val'])){
-        $inputs = [];
-        foreach($_POST as $key => $input){
-            $inputs[$key] = $input;
+        global $wpdb;
+
+        if(isset($_POST['product_id-0']) || isset($_POST['of_license-0']) || isset($_POST['product_code-0']) || isset($_POST['comment-0']) || isset($_POST['id-0'])){
+            $id_0 = intval($_POST['id-0']);
+            $product_id_0 = intval($_POST['product_id-0']);
+            $of_license_0 = intval($_POST['of_license-0']);
+            $product_code_0 = sanitize_text_field($_POST['product_code-0']);
+            $comment_0 = sanitize_text_field($_POST['comment-0']);
+
+            if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_produce_info WHERE ID = $id_0")){
+                $wpdb->insert($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_0,
+                        'of_License' => $of_license_0,
+                        'product_code' => $product_code_0,
+                        'comment' => $comment_0,
+                    ),array('%d','%d','%s','%s'));
+            }else{
+                $wpdb->update($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_0,
+                        'of_License' => $of_license_0,
+                        'product_code' => $product_code_0,
+                        'comment' => $comment_0,
+                    ),array('ID' => $id_0),array('%d','%d','%s','%s'),array('%d'));
+            }
         }
-        array_pop($inputs);
-        foreach($inputs as $key => $val){
-            update_option( $key, $val);
+
+        if(isset($_POST['product_id-1']) || isset($_POST['of_license-1']) || isset($_POST['product_code-1']) || isset($_POST['comment-1']) || isset($_POST['id-1'])){
+            $id_1 = intval($_POST['id-1']);
+            $product_id_1 = intval($_POST['product_id-1']);
+            $of_license_1 = intval($_POST['of_license-1']);
+            $product_code_1 = sanitize_text_field($_POST['product_code-1']);
+            $comment_1 = sanitize_text_field($_POST['comment-1']);
+
+            if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_produce_info WHERE ID = $id_1")){
+                $wpdb->insert($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_1,
+                        'of_License' => $of_license_1,
+                        'product_code' => $product_code_1,
+                        'comment' => $comment_1,
+                    ),array('%d','%d','%s','%s'));
+            }else{
+                $wpdb->update($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_1,
+                        'of_License' => $of_license_1,
+                        'product_code' => $product_code_1,
+                        'comment' => $comment_1,
+                    ),array('ID' => $id_1),array('%d','%d','%s','%s'),array('%d'));
+            }
+        }
+        if(isset($_POST['product_id-2']) || isset($_POST['of_license-2']) || isset($_POST['product_code-2']) || isset($_POST['comment-2']) || isset($_POST['id-2'])){
+            $id_2 = intval($_POST['id-2']);
+            $product_id_2 = intval($_POST['product_id-2']);
+            $of_license_2 = intval($_POST['of_license-2']);
+            $product_code_2 = sanitize_text_field($_POST['product_code-2']);
+            $comment_2 = sanitize_text_field($_POST['comment-2']);
+
+            if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_produce_info WHERE ID = $id_2")){
+                $wpdb->insert($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_2,
+                        'of_License' => $of_license_2,
+                        'product_code' => $product_code_2,
+                        'comment' => $comment_2,
+                    ),array('%d','%d','%s','%s'));
+            }else{
+                $wpdb->update($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_2,
+                        'of_License' => $of_license_2,
+                        'product_code' => $product_code_2,
+                        'comment' => $comment_2,
+                    ),array('ID' => $id_2),array('%d','%d','%s','%s'),array('%d'));
+            }
+        }
+        if(isset($_POST['product_id-3']) || isset($_POST['of_license-3']) || isset($_POST['product_code-3']) || isset($_POST['comment-3']) || isset($_POST['id-3'])){
+            $id_3 = intval($_POST['id-3']);
+            $product_id_3 = intval($_POST['product_id-3']);
+            $of_license_3 = intval($_POST['of_license-3']);
+            $product_code_3 = sanitize_text_field($_POST['product_code-3']);
+            $comment_3 = sanitize_text_field($_POST['comment-3']);
+
+            if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_produce_info WHERE ID = $id_3")){
+                $wpdb->insert($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_3,
+                        'of_License' => $of_license_3,
+                        'product_code' => $product_code_3,
+                        'comment' => $comment_3,
+                    ),array('%d','%d','%s','%s'));
+            }else{
+                $wpdb->update($wpdb->prefix.'lic_produce_info',
+                    array(
+                        'product_id' => $product_id_3,
+                        'of_License' => $of_license_3,
+                        'product_code' => $product_code_3,
+                        'comment' => $comment_3,
+                    ),array('ID' => $id_3),array('%d','%d','%s','%s'),array('%d'));
+            }
         }
     }
 }
 
 require_once plugin_dir_path( __FILE__ )."inc/activation_action_hooks.php";
-require_once plugin_dir_path( __FILE__ )."inc/activation_activate.php";
 require_once plugin_dir_path( __FILE__ )."inc/activation_menus.php";
 require_once plugin_dir_path( __FILE__ )."inc/activation_scripts.php";
 require_once plugin_dir_path( __FILE__ )."inc/activation_menu_items.php";
@@ -146,7 +242,7 @@ function activations_post_show(){
 // Input component for product mtid
 function mtids_inputs($data = array()){
     $output = '';
-    $output .= '<input class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'" pos="'.$data['pos'].'">';
+    $output .= '<input data-id="'.$data['id'].'" class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'">';
     return $output;
 }
 
@@ -158,24 +254,43 @@ function subsactivations_mtids_store(){
     if(isset($_POST['data'])){
         $datas = $_POST['data'];
         foreach($datas as $data){
-            $pos = intval($data['pos']);
             $product_id = intval($data['product_id']);
             $values = intval($data['values']);
+            $dataid = intval($data['id']);
             global $wpdb,$current_user;
-            
-            if($data['values'] == ""){
-                global $wpdb,$current_user;
-                $wpdb->query("DELETE FROM {$wpdb->prefix}subsactivation_products_v2 WHERE product_id = $product_id AND pos = $pos AND user_id = $current_user->ID");
+
+            $order_id = get_orders_ids_by_product_id($product_id);
+            $order = wc_get_order( $order_id );
+            $subscriptions = wcs_get_subscriptions_for_order($order, array('order_type' => 'parent'));
+            $is_subscription = false;
+            if(!empty($subscriptions)){
+                $is_subscription = true;
+            }
+
+            $product_code = $wpdb->get_var("SELECT product_code FROM {$wpdb->prefix}lic_produce_info WHERE product_id = $product_id");
+                
+            if($entryID = $wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Product_id = $product_id AND Userid = $current_user->ID AND ID = $dataid")){
+                $wpdb->update($wpdb->prefix.'lic_activations',array(
+                    'Product_id' => $product_id,
+                    'Mtid' => $values,
+                    'Prodcode' => $product_code, 
+                    'Editable' => $is_subscription
+                ),array('ID' => $entryID),array('%d','%d','%s','%d'),array('%d'));
             }else{
-                if($entryID = $wpdb->get_var("SELECT ID FROM {$wpdb->prefix}subsactivation_products_v2 WHERE product_id = $product_id AND pos = $pos")){
-                    $wpdb->update($wpdb->prefix.'subsactivation_products_v2',array('product_id' => $product_id,'user_id' => $current_user->ID,'mtid' => $values,'pos' => $pos),array('ID' => $entryID),array('%d','%d','%d','%d'),array('%d'));
-                }else{
-                    $wpdb->insert($wpdb->prefix.'subsactivation_products_v2', array('product_id' => $product_id,'user_id' => $current_user->ID,'mtid' => $values,'pos' => $pos),array('%d','%d','%d','%d'));
-                }
+                $insert = $wpdb->insert($wpdb->prefix.'lic_activations', array(
+                    'Product_id' => $product_id,
+                    'Userid' => $current_user->ID,
+                    'Mtid' => $values,
+                    'Prodcode' => $product_code, 
+                    'Editable' => $is_subscription,
+                    'Status' => 1,
+                    'UserName' => $current_user->display_name
+                ),array('%d','%d','%d','%s','%d','%s'));
             }
         }
-        die;
+        die; 
     }
+    die;
 }
 
 
@@ -384,6 +499,27 @@ function get_orders_ids_by_product_id( $product_id ) {
     );
 }
 
+
+function has_active_subscription( $user_id=null ) {
+    // When a $user_id is not specified, get the current user Id
+    if( null == $user_id && is_user_logged_in() ) 
+        $user_id = get_current_user_id();
+    // User not logged in we return false
+    if( $user_id == 0 ) 
+        return false;
+
+    // Get all active subscriptions for a user ID
+    $active_subscriptions = get_posts( array(
+        'numberposts' => 1, // Only one is enough
+        'meta_key'    => '_customer_user',
+        'meta_value'  => $user_id,
+        'post_type'   => 'shop_subscription', // Subscription post type
+        'post_status' => 'wc-active', // Active subscription
+        'fields'      => 'ids', // return only IDs (instead of complete post objects)
+    ) );
+
+    return $active_subscriptions;
+}
 /**
  * When user buy defined products
  */
@@ -397,31 +533,47 @@ function moresell_order_processing($order_id){
     $is_subscription = false;
     if(!empty($subscriptions)){
         $is_subscription = true;
-    }    
+    }
 
-    $ordered_pid = 0;
+    $product_id = 0;
     foreach ( $items as $item ) {
-        $ordered_pid = $item->get_product_id();
+        $product_id = $item->get_product_id();
     }
 
-    $defined = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}options WHERE option_name LIKE 'product_id_%'");
-    if($defined){
-        $i =1;
-        foreach($defined as $id){
-            if(intval($id->option_value == $ordered_pid)){
-                if(!$wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Orderno = $order_id AND Userid = {$current_user->ID}")){
-                    $insert = $wpdb->insert($wpdb->prefix.'lic_activations',array(
-                        'Orderno' => $order_id,
-                        'Userid' => $current_user->ID,
-                        'Editable' => $is_subscription,
-                        'UserName' => $current_user->display_name,
-                        'Prodcode' => get_option('product_code_'.$i)
-                    ),array('$d','$d','$f','$s','$s'));
-                }
-            }
-            $i++;
-        }
+    $date = date("Y-m-d h:i:sa");
+    $expiration_date = WC_Subscriptions_Product::get_expiration_date($product_id);
+    // Product code
+    $product_code = $wpdb->get_var("SELECT product_code FROM {$wpdb->prefix}lic_produce_info WHERE product_id = $product_id");
+    // Expected inputs
+    $oflocense = 0;
+    if($oflocense = $wpdb->get_var("SELECT of_License FROM {$wpdb->prefix}lic_produce_info WHERE product_id = $product_id")){
+        $oflocense = $oflocense;
     }
+    // Already inserted
+    $inserted = 0;
+    if($inserted = $wpdb->query("SELECT * FROM {$wpdb->prefix}lic_activations WHERE Product_id = $product_id AND Userid = {$current_user->ID}")){
+        $inserted = $inserted;
+    }
+    // It's for hard modify (Not usable->It can hit work for test by admmin)
+    if($inserted>0){
+        $wpdb->query("DELETE FROM {$wpdb->prefix}lic_activations WHERE `Product_id` = $product_id AND `Orderno` = $order_id AND Userid = {$current_user->ID}");
+        $inserted = 0;
+    }
+
+    for($i = $inserted; $i < $oflocense;$i++){
+        $wpdb->insert($wpdb->prefix.'lic_activations',array(
+            'Orderno' => $order_id,
+            'Userid' => $current_user->ID,
+            'Editable' => $is_subscription,
+            'Status' => 1,
+            'Product_id' => $product_id,
+            'UserName' => $current_user->display_name,
+            'Prodcode' => ($product_code?$product_code:''),
+            'Modifydate' => $date,
+            'Expirytime' => ($expiration_date?$expiration_date:''),
+        ),array('%d','%d','%d','%s','%s','%s','%s'));
+    }
+    
 }
 /**
  * Column lists for subscription table

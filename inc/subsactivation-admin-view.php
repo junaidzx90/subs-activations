@@ -23,13 +23,31 @@
                 </thead>
                 <tbody>
                     <?php
-                        for($i = 1; $i <= 4;$i++){
+                        global $wpdb;
+                        for($i = 0; $i < 4;$i++){
+                            $results = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lic_produce_info");
                             ?>
-                            <tr data-id="<?php echo $i; ?>">
-                                <td><input type="number" name="product_id_<?php echo $i; ?>" value="<?php echo get_option('product_id_'.$i); ?>"></td>
-                                <td><input type="number" name="license_<?php echo $i; ?>" value="<?php echo get_option('license_'.$i); ?>"></td>
-                                <td><input type="text" name="product_code_<?php echo $i; ?>" value="<?php echo get_option('product_code_'.$i); ?>"></td>
-                                <td><input type="text" name="comment_<?php echo $i; ?>" value="<?php echo get_option('comment_'.$i); ?>"></td>
+                            <tr>
+                                <td>
+                                    <input type="number" name="product_id-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->product_id)?$results[$i]->product_id:''); ?>">
+
+                                    <input type="hidden" name="id-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->ID)?$results[$i]->ID:''); ?>">
+                                </td>
+                                <td>
+                                    <input type="number" name="of_license-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->of_License)?$results[$i]->of_License:''); ?>">
+
+                                    <input type="hidden" name="id-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->ID)?$results[$i]->ID:''); ?>">
+                                </td>
+                                <td>
+                                    <input type="text" name="product_code-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->product_code)?$results[$i]->product_code:''); ?>">
+
+                                    <input type="hidden" name="id-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->ID)?$results[$i]->ID:''); ?>">
+                                </td>
+                                <td>
+                                    <input type="text" name="comment-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->comment)?$results[$i]->comment:''); ?>">
+                                    
+                                    <input type="hidden" name="id-<?php echo $i; ?>" value="<?php echo (!empty($results[$i]->ID)?$results[$i]->ID:''); ?>">
+                                </td>
                             </tr>
                             <?php
                         }

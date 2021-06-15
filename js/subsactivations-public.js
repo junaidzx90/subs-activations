@@ -72,13 +72,17 @@ jQuery(function ($) {
 
         let data = []
         $('.mtids').each(function () {
-            let pos = $(this).attr('pos');
+            let id = $(this).attr('data-id');
+            // if (!id) {
+            //     e.preventDefault();
+            //     return false;
+            // }
             let product_id = $(this).attr('p-id');
             let values = $(this).val();
             data.push({
-                'pos': pos,
                 'product_id': product_id,
                 'values': values,
+                'id': id
             });
         });
     
@@ -95,6 +99,7 @@ jQuery(function ($) {
             },
             success: function (response) {
                 btn.removeAttr('disabled').val('Activate');
+                location.reload();
             }
         });
     });

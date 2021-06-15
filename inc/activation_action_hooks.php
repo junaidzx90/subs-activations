@@ -1,6 +1,4 @@
 <?php
-register_activation_hook( __FILE__, 'activate_subsactivations_cplgn' );
-register_deactivation_hook( __FILE__, 'deactivate_subsactivations_cplgn' );
 add_action( 'plugins_loaded', 'subsactivations_dependency' );
 add_action( 'admin_init' , 'my_column_init' );
 // subsactivations_reset_colors
