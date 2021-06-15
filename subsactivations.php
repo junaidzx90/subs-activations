@@ -523,11 +523,11 @@ function has_active_subscription( $user_id=null ) {
 /**
  * When user buy defined products
  */
-add_action( 'woocommerce_order_status_completed', 'moresell_order_processing', 10, 1);
-function moresell_order_processing($order_id){
+add_action( 'woocommerce_checkout_order_created', 'moresell_order_processing', 10, 1);
+function moresell_order_processing($order){
     global $wpdb,$current_user;
-    $order = wc_get_order( $order_id );
     $items = $order->get_items();
+    $order_id = $order->get_ID();
 
     $subscriptions = wcs_get_subscriptions_for_order($order, array('order_type' => 'parent'));
     $is_subscription = false;
@@ -556,24 +556,25 @@ function moresell_order_processing($order_id){
     }
     // It's for hard modify (Not usable->It can hit work for test by admmin)
     if($inserted>0){
-        $wpdb->query("DELETE FROM {$wpdb->prefix}lic_activations WHERE `Product_id` = $product_id AND `Orderno` = $order_id AND Userid = {$current_user->ID}");
+        $wpdb->query("DELETE FROM {$wpdb->prefix}lic_activations WHERE `Product_id` = $product_id AND Userid = {$current_user->ID}");
         $inserted = 0;
     }
 
-    for($i = $inserted; $i < $oflocense;$i++){
-        $wpdb->insert($wpdb->prefix.'lic_activations',array(
-            'Orderno' => $order_id,
-            'Userid' => $current_user->ID,
-            'Editable' => $is_subscription,
-            'Status' => 1,
-            'Product_id' => $product_id,
-            'UserName' => $current_user->display_name,
-            'Prodcode' => ($product_code?$product_code:''),
-            'Modifydate' => $date,
-            'Expirytime' => ($expiration_date?$expiration_date:''),
-        ),array('%d','%d','%d','%s','%s','%s','%s'));
+    if($oflocense){
+        for($i = $inserted; $i < $oflocense;$i++){
+            $wpdb->insert($wpdb->prefix.'lic_activations',array(
+                'Orderno' => $order_id,
+                'Userid' => $current_user->ID,
+                'Editable' => $is_subscription,
+                'Status' => 1,
+                'Product_id' => $product_id,
+                'UserName' => $current_user->display_name,
+                'Prodcode' => ($product_code?$product_code:''),
+                'Modifydate' => $date,
+                'Expirytime' => ($expiration_date?$expiration_date:''),
+            ),array('%d','%d','%d','%s','%s','%s','%s'));
+        }
     }
-    
 }
 /**
  * Column lists for subscription table

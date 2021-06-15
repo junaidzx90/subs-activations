@@ -27,8 +27,9 @@ function subsactivations_output($atts){
                     $product_name = '';
                     foreach ( $items as $item ) {
                         $product_name = $item->get_name();
+                        $product_id = $item->get_product_id();
                     }
-                    echo '<h5 style="margin-top:0px" class="product_mtids_ttl">('.has_active_subscription()[0].') '.ucfirst($product_name).'</h5>';
+                    echo '<h5 style="margin-top:0px" class="product_mtids_ttl">('.$product_id.') '.ucfirst($product_name).'</h5>';
                     
                     $table = $wpdb->prefix.'subsactivations__v2';
                     $account1 = $wpdb->get_var("SELECT account_number FROM $table WHERE user_id = $current_user->ID AND pos = 1");
