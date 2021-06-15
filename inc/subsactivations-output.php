@@ -54,7 +54,7 @@ function subsactivations_output($atts){
                         $product_id = $product->product_id;
                         $of_license = $product->of_License;
 
-                        if(has_bought_items($current_user->ID,$product_id)){
+                        if($wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id")){
 
                             echo '<h5 class="product_mtids_ttl">('.$product_id.') '.ucfirst(get_post($product_id)->post_title).'</h5>';
                             
@@ -72,8 +72,9 @@ function subsactivations_output($atts){
                         }
                         $i++;
                     }
-
-                    echo '<input type="submit" name="mtids_activate" id="subsactivations-mtidsbtn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'Activate').'">';
+                    if($wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID}")){
+                        echo '<input type="submit" name="mtids_activate" id="subsactivations-mtidsbtn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'Activate').'">';
+                    }
                 }
                 ?>
 
