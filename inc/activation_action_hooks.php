@@ -8,8 +8,8 @@ add_action("wp_ajax_nopriv_subsactivations_reset_colors", "subsactivations_reset
 add_shortcode('activations_v1', 'subsactivations_output');
 // Output single_post with Shortcode
 add_shortcode('single_post_v1', 'activations_post_show');
-add_action("wp_ajax_subsactivations_data_check", "subsactivations_data_check");
-add_action("wp_ajax_nopriv_subsactivations_data_check", "subsactivations_data_check");
+add_action("wp_ajax_subsactivations_mtids_store", "subsactivations_mtids_store");
+add_action("wp_ajax_nopriv_subsactivations_mtids_store", "subsactivations_mtids_store");
 add_action("wp_ajax_subsactivations_mtids_store", "subsactivations_mtids_store");
 add_action("wp_ajax_nopriv_subsactivations_mtids_store", "subsactivations_mtids_store");
 add_filter ( 'woocommerce_account_menu_items', 'junu_single_post_show', 40 );
