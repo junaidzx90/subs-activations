@@ -11,6 +11,9 @@ add_action('admin_menu', function(){
     // Settings
     add_settings_field( 'subsactivations_url', 'Purchase Url', 'subsactivations_url_func', 'subsactivations_settings_page', 'subsactivations_settings_section');
     register_setting( 'subsactivations_settings_section', 'subsactivations_url');
+    // Purchase btn texts
+    add_settings_field( 'subsactivations_purchase_txt', 'Purchase button text', 'subsactivations_purchase_txt_func', 'subsactivations_settings_page', 'subsactivations_settings_section');
+    register_setting( 'subsactivations_settings_section', 'subsactivations_purchase_txt');
 
     // Activate button
     add_settings_field( 'subsactivations_section_activate_btn', 'Activate Button text', 'subsactivations_section_activate_btn_func', 'subsactivations_settings_page', 'subsactivations_settings_section');

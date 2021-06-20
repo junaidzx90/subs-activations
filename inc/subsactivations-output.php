@@ -30,9 +30,8 @@ function subsactivations_output($atts){
                 $i = 1;
                 foreach($products_info as $product){
                     $product_id = $product->product_id;
-                    $of_license = $product->of_License;
 
-                    if($wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id")){
+                    if($Orderno = $wpdb->get_var("SELECT Orderno FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id")){
 
                         $product_name = get_post($product_id)->post_title;
 
@@ -42,10 +41,12 @@ function subsactivations_output($atts){
                             $product_name = implode(" / ", $variation->get_variation_attributes());
                         }
 
-                        echo '<h5 class="product_mtids_ttl">('.$product_id.') '.ucfirst($product_name).'</h5>';
-                        
-                        for($x = 0; $x < $of_license;$x++){
-                            $results = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id");
+                        echo '<h5 class="product_mtids_ttl">('.$Orderno.') '.ucfirst($product_name).'</h5>';
+
+                        $results = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id");
+
+                        for($x = 0; $x < count($results);$x++){
+                            
                             $data = [
                                 'name' => 'mtid_'.$x,
                                 'placeholder' => 'Account number',
@@ -70,7 +71,7 @@ function subsactivations_output($atts){
     }else{
         ?>
         <div class="purchase_btnwrap">
-            <a id="purchase-btn" href="<?php echo esc_url($url); ?>"> Please start the subscription </a>
+            <a id="purchase-btn" href="<?php echo esc_url($url); ?>"> <?php echo get_option( 'subsactivations_purchase_txt', 'Please start the subscription' ) ?> </a>
         </div>
         <?php
     }

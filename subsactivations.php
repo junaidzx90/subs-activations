@@ -219,7 +219,7 @@ function activations_post_show(){
         $url = get_option( 'subsactivations_url', '' );
         ?>
         <div class="purchase_btnwrap">
-            <a id="purchase-btn" href="<?php echo esc_url($url); ?>"> Please start the subscription </a>
+            <a id="purchase-btn" href="<?php echo esc_url($url); ?>"> <?php echo get_option( 'subsactivations_purchase_txt', 'Please start the subscription' ) ?> </a>
         </div>
         <?php
         $output = ob_get_contents();

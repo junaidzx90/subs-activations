@@ -55,8 +55,12 @@ jQuery(function ($) {
                         });
                     });
                     
-                    var url = window.location.href;
-                    $('body').load(url);
+                    // var url = window.location.href;
+                    // $('body').load(url);
+                    
+                    setTimeout(() => {
+                        location.reload(); 
+                    }, 1000);
                 }
                 
                 if (response.error) {

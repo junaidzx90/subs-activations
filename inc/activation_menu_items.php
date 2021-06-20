@@ -7,6 +7,9 @@
 function subsactivations_url_func(){
     echo '<input type="url" name="subsactivations_url" id="subsactivations_url" value="'.(get_option( 'subsactivations_url', '' ) ? get_option( 'subsactivations_url', '' ):'').'" placeholder="Url">';
 }
+function subsactivations_purchase_txt_func(){
+    echo '<input type="text" name="subsactivations_purchase_txt" id="subsactivations_purchase_txt" value="'.(get_option( 'subsactivations_purchase_txt', '' ) ? get_option( 'subsactivations_purchase_txt', '' ):'').'" placeholder="Button text">';
+}
 
 //subsactivations_section_title
 function subsactivations_section_activate_btn_func(){
