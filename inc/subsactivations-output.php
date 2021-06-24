@@ -38,7 +38,8 @@ function subsactivations_output($atts){
                         $product_variation = wc_get_product($product_id);
                         if($product_variation->get_type() == 'variation'){
                             $variation = new WC_Product_Variation($product_id);
-                            $product_name = implode(" / ", $variation->get_variation_attributes());
+                            $variation_ = wp_get_post_parent_id($product_id);
+                            $product_name = get_post( $variation_ )->post_title;
                         }
 
                         echo '<h5 class="product_mtids_ttl">('.$Orderno.') '.ucfirst($product_name).'</h5>';
