@@ -62,6 +62,7 @@ function subsactivations_output($atts){
                 }
                 if($wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID}")){
                     echo '<input type="submit" name="mtids_activate" id="subsactivations-mtidsbtn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'Activate').'">';
+                    echo '<p>It will take upto 12 hours to update the account number on MT4</p>';
                 }
             }
             ?>

@@ -59,7 +59,7 @@ jQuery(function ($) {
                     // $('body').load(url);
                     
                     setTimeout(() => {
-                        location.reload(); 
+                        // location.reload(); 
                     }, 1000);
                 }
                 

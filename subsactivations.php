@@ -196,9 +196,8 @@ require_once 'inc/subsactivations-output.php';
 function activations_post_show(){
     ob_start();
     global $current_user,$wpdb;
-    $hassubscription = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID}");
 
-    if($hassubscription){
+    if(has_bought_items($current_user->ID)>0){
         ?>
         <div class="requires">
         <?php
@@ -313,7 +312,12 @@ function subsactivations_mtids_store(){
                         wp_mail($admin_email, $subject, $message);
                     }
 
-                    $alerts[] = 'Account license changed from <span class="number">#'. $before_id .'</span> to  <span class="number">#'. $values.'</span>';
+                    if(!$before_id || $before_id == 0){
+                        $alerts[] = 'Account <span class="number">#'. $values.'</span> is activated.';
+                    }else{
+                        $alerts[] = 'Account license changed from <span class="number">#'. $before_id .'</span> to  <span class="number">#'. $values.'</span>';
+                    }
+                    
                 }
 
             }else{
@@ -530,13 +534,7 @@ function has_bought_items( $user_var = 0,  $product_ids = 0 ) {
         AND woim.meta_key IN ( '_product_id', '_variation_id' ) $line_meta_value 
     " );
 
-    if($product_ids == ''){
-        return 0;
-    }else{
-        // Return true if count is higher than 0 (or false)
-        return $count; 
-    }
-   
+    return $count;
 }
 
 // Get order id by product id
@@ -597,30 +595,35 @@ function moresell_order_processing($order){
         if($inserted = $wpdb->query("SELECT * FROM {$wpdb->prefix}lic_activations WHERE Product_id = $product_id AND Userid = {$current_user->ID}")){
             $inserted = $inserted;
         }
+
         // It's for hard modify (Not usable->It can hit work for test by admmin)
         if($inserted>0){
-            $wpdb->query("DELETE FROM {$wpdb->prefix}lic_activations WHERE `Product_id` = $product_id AND Userid = {$current_user->ID}");
-            $inserted = 0;
+            if(!$is_subscription){
+                $wpdb->query("DELETE FROM {$wpdb->prefix}lic_activations WHERE `Product_id` = $product_id AND Userid = {$current_user->ID}");
+                $inserted = 0;
+            }
         }
 
-        if($oflocense){
-            for($i = $inserted; $i < $oflocense;$i++){
-                $wpdb->insert($wpdb->prefix.'lic_activations',array(
-                    'Orderno' => $order_id,
-                    'Userid' => $current_user->ID,
-                    'Editable' => $is_subscription,
-                    'Status' => 1,
-                    'Product_id' => $product_id,
-                    'UserName' => $current_user->display_name,
-                    'Prodcode' => ($product_code?$product_code:''),
-                    'Modifydate' => $date,
-                    'Expirytime' => ($expiration_date?$expiration_date:''),
-                ),array('%d','%d','%d','%s','%s','%s','%s'));
+        if($inserted > 0 && $is_subscription){
+            return true;
+        }else{
+            if($oflocense){
+                for($i = $inserted; $i < $oflocense;$i++){
+                    $wpdb->insert($wpdb->prefix.'lic_activations',array(
+                        'Orderno' => $order_id,
+                        'Userid' => $current_user->ID,
+                        'Editable' => $is_subscription,
+                        'Status' => 1,
+                        'Product_id' => $product_id,
+                        'UserName' => $current_user->display_name,
+                        'Prodcode' => ($product_code?$product_code:''),
+                        'Modifydate' => $date,
+                        'Expirytime' => ($expiration_date?$expiration_date:''),
+                    ),array('%d','%d','%d','%s','%s','%s','%s'));
+                }
             }
         }
     }
-
-    
 }
 /**
  * Column lists for subscription table
