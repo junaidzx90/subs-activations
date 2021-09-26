@@ -27,6 +27,19 @@ if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_
 	die;
 }
 
+$iam_blocked = false;
+
+add_action( 'init', function(){
+    global $current_user;
+    $blocked_users = get_option('mt_fields_edit_access');
+    if(is_array($blocked_users)){
+        if(array_key_exists($current_user->ID, $blocked_users)){
+            global $iam_blocked;
+            $iam_blocked = true;
+        }
+    }
+});
+
 function subsactivations_admin_noticess(){
     $message = sprintf(
         /* translators: 1: Plugin Name 2: Elementor */
@@ -229,8 +242,13 @@ function activations_post_show(){
 
 // Input component for product mtid
 function mtids_inputs($data = array()){
+    global $iam_blocked;
+    $blocked = false;
+    if(!empty($data['value'])){
+        $blocked =  $iam_blocked;
+    }
     $output = '';
-    $output .= '<input data-id="'.$data['id'].'" class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'">';
+    $output .= '<input '.($blocked?'disabled':'').' data-id="'.$data['id'].'" class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'">';
     return $output;
 }
 
@@ -713,4 +731,46 @@ function wp_wc_subscription_column_view($column_name)
         $user_id = $the_subscription->get_customer_id();
         echo get_activations_user_data($user_id);
     }
+}
+
+function mt_id_edit_access(){
+    if(isset($_POST['value']) && isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['value'])){
+        $user_id = intval($_POST['user_id']);
+        $option = $_POST['value'];
+
+        $hasIttems = get_option('mt_fields_edit_access');
+
+        if(!is_array($hasIttems)){
+            $hasIttems = [];
+        }
+
+        if($option == 'blocked'){
+            $hasIttems[$user_id] = 'blocked';
+        }
+
+        if($option == 'allowed'){
+            unset($hasIttems[$user_id]);
+        }
+
+        $updated = update_option( 'mt_fields_edit_access', $hasIttems );
+
+        $user = get_user_by( 'ID', $user_id );
+
+        if($option == 'blocked'){
+            $output = '<tr class="user-'.$user->ID.'">
+                <th scope="row">'.$user->ID.'</th>
+                <td>'.$user->display_name.'</td>
+                <td>'.$user->user_email.'</td>
+                <td>'.$option.'</td>
+            </tr>';
+            echo json_encode(['blocked' => $output]);
+        }else{
+            $output = '.user-'.$user->ID;
+            echo json_encode(['allowed' => $output]);
+        }
+        
+        die;
+    }
+    
+    die;
 }

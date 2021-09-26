@@ -1,6 +1,8 @@
 <?php
 function subsactivations_output($atts){
     ob_start();
+    global $iam_blocked;
+    
 
     $url = '#';
     if(!empty($atts) && $atts['url']){
@@ -26,6 +28,8 @@ function subsactivations_output($atts){
             global $wpdb,$current_user;
             $products_info = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lic_produce_info WHERE product_id > 0");
 
+            $blocked = false;
+
             if(!empty($products_info)){
                 $i = 1;
                 foreach($products_info as $product){
@@ -34,8 +38,8 @@ function subsactivations_output($atts){
                     if($Orderno = $wpdb->get_var("SELECT Orderno FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID} AND Product_id = $product_id")){
 
                         $product_name = get_post($product_id)->post_title;
-
                         $product_variation = wc_get_product($product_id);
+
                         if($product_variation->get_type() == 'variation'){
                             $variation = new WC_Product_Variation($product_id);
                             $variation_ = wp_get_post_parent_id($product_id);
@@ -48,6 +52,12 @@ function subsactivations_output($atts){
 
                         for($x = 0; $x < count($results);$x++){
                             
+                            if(!empty($results[$x]->Mtid)){
+                                $blocked = $iam_blocked;
+                            }else{
+                                $blocked = false;
+                            }
+
                             $data = [
                                 'name' => 'mtid_'.$x,
                                 'placeholder' => 'Account number',
@@ -60,8 +70,9 @@ function subsactivations_output($atts){
                     }
                     $i++;
                 }
+
                 if($wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Userid = {$current_user->ID}")){
-                    echo '<input type="submit" name="mtids_activate" id="subsactivations-mtidsbtn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'Activate').'">';
+                    echo '<input '.($blocked?'disabled':'').' type="submit" name="mtids_activate" id="subsactivations-mtidsbtn" value="'.(get_option( 'subsactivations_section_activate_btn', '' ) ? get_option( 'subsactivations_section_activate_btn', '' ):'Activate').'">';
                     echo '<p>It will take upto 12 hours to update the account number on MT4</p>';
                 }
             }

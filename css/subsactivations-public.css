@@ -1,5 +1,6 @@
 .ufields{min-width:300px;padding:15px;border-radius:5px;position:relative}
-#subsactivations input{width:100%;border:1px solid #ddd;margin:0;min-height:50px;max-height:50px;padding:inherit;margin-bottom:10px}
+#subsactivations input{width:100%;border:1px solid #ddd;margin:0;min-height:50px;max-height:50px;padding:inherit;margin-bottom:10px;}
+#subsactivations-mtidsbtn{cursor: pointer !important;}
 .downloadbtn,inputinput[type=submit]{border-style:none;min-height:50px;max-height:50px;margin-top:10px;padding:initial}
 .downloadbtn:hover,inputinput[type=submit]{transition:.3s}
 #subsactivations input:active,#subsactivations input:focus{outline:0}
@@ -17,3 +18,4 @@ h3.section_title{margin-bottom:9px;color:var(--subsactivations_heading_color)!im
 .downloadbtn:hover,input[type=submit]:hover{transition:.3s;opacity:1;background-color:var(--subsactivations_active_btn_color)!important}
 .product_mtids_ttl{margin-top:30px}
 span.product_name{font-size:16px;color:#5993df;text-transform:capitalize}
+input:disabled{background-color: rgb(228, 228, 228) !important;}

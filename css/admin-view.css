@@ -1,6 +1,7 @@
-.tab_btns{width:100%;height:50px;padding:10px;padding-bottom:0;padding-left:0}
+.tab_btns{width:95%;height:50px;padding:10px;padding-bottom:0;padding-left:0}
 button.button-tab{border:none;border-top:1px solid #ddd;padding:10px 20px;border-left:1px solid #ddd;border-right:1px solid #ddd;font-size:18px;cursor:pointer;height:100%}
-div#first,div#second{padding:10px;background-color:#fff;border:1px solid #ddd;border-top:transparent}
+.tabs{width: 95%;}
+div#first,div#second,div#third,div#four{padding:10px;background-color:#fff;border:1px solid #ddd;border-top:transparent}
 p.submit{display:inline-block}
 button#rest_color{padding:7px 10px;background:red;border:none;outline:0;border-radius:3px;margin-left:10px;color:#fff;cursor:pointer;opacity:.7}
 button#rest_color:hover{opacity:1}
@@ -12,4 +13,28 @@ table#licactivations_tbl {
     border-right: 0;
     border-bottom: 0;
     background: transparent;
+}
+.table_of_blocked_users {
+    margin-top: 35px;
+}
+.select_customer{
+    margin-top: 35px;
+}
+table#table_of_blocked_users { 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+/* Zebra striping */
+table#table_of_blocked_users tr:nth-of-type(odd) { 
+    background: #eee; 
+}
+table#table_of_blocked_users th { 
+    background: #363b3f; 
+    color: white; 
+    font-weight: bold; 
+}
+table#table_of_blocked_users td,table#table_of_blocked_users th { 
+    padding: 6px; 
+    border: 1px solid #ccc; 
+    text-align: left; 
 }
