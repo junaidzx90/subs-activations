@@ -18,4 +18,4 @@ h3.section_title{margin-bottom:9px;color:var(--subsactivations_heading_color)!im
 .downloadbtn:hover,input[type=submit]:hover{transition:.3s;opacity:1;background-color:var(--subsactivations_active_btn_color)!important}
 .product_mtids_ttl{margin-top:30px}
 span.product_name{font-size:16px;color:#5993df;text-transform:capitalize}
-input:disabled{background-color: rgb(228, 228, 228) !important;}
+input:disabled{background-color: rgb(228, 228, 228) !important;pointer-events: none;}

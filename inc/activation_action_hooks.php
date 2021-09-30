@@ -16,5 +16,5 @@ add_filter ( 'woocommerce_account_menu_items', 'junu_single_post_show', 40 );
 add_action( 'init', 'junu_endpoints' );
 add_action( 'woocommerce_account_single_post_endpoint', 'junu_my_account_endpoint_single_post' );
 
-add_action("wp_ajax_mt_id_edit_access", "mt_id_edit_access");
-add_action("wp_ajax_nopriv_mt_id_edit_access", "mt_id_edit_access");
+add_action("wp_ajax_enable_disable_mt_edits", "enable_disable_mt_edits");
+add_action("wp_ajax_nopriv_enable_disable_mt_edits", "enable_disable_mt_edits");

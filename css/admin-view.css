@@ -38,3 +38,15 @@ table#table_of_blocked_users td,table#table_of_blocked_users th {
     border: 1px solid #ccc; 
     text-align: left; 
 }
+
+.act_checkbtns {
+    margin-left: 10px;
+}
+.act_checkbtns label {
+    user-select: none;
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    gap: 8px;
+    margin-right: 14px;
+}

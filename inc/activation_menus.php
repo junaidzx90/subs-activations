@@ -1,7 +1,9 @@
 <?php
 // Register Menu
 add_action('admin_menu', function(){
-    add_menu_page( 'Activations', 'Activations', 'manage_options', 'activations', 'subsactivations_menupage_display', 'dashicons-admin-network', 45 );
+    add_menu_page( 'Activations', 'Activations', 'manage_options', 'activations', 'activated_users_table', 'dashicons-admin-network', 45 );
+    add_submenu_page( 'activations', 'Activated Users', 'Activated Users', 'manage_options', 'activations', 'activated_users_table', null );
+    add_submenu_page( 'activations', 'Settings', 'Settings', 'manage_options', 'settings', 'subsactivations_menupage_display', null );
 
     // For url
     add_settings_section( 'subsactivations_settings_section', '', '', 'subsactivations_settings_page' );

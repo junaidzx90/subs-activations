@@ -27,18 +27,9 @@ if ( ! defined( 'WPINC' ) && ! defined( 'SUBSACT_NAME' ) && ! defined( 'SUBSACT_
 	die;
 }
 
-$iam_blocked = false;
-
-add_action( 'init', function(){
-    global $current_user;
-    $blocked_users = get_option('mt_fields_edit_access');
-    if(is_array($blocked_users)){
-        if(array_key_exists($current_user->ID, $blocked_users)){
-            global $iam_blocked;
-            $iam_blocked = true;
-        }
-    }
-});
+if( ! class_exists( 'WP_List_Table' ) ) {
+    require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+}
 
 function subsactivations_admin_noticess(){
     $message = sprintf(
@@ -203,6 +194,108 @@ function subsactivations_menupage_display(){
     }
 }
 
+// Activated users
+function activated_users_table(){
+    $users_data = '';
+    if(!class_exists('Activated_Users')){
+        require_once plugin_dir_path( __FILE__ )."inc/activated_users_table.php";
+        $users_data = new Activated_Users();
+    }
+    
+    ?>
+    <style>
+        .alignleft.actions.bulkactions {
+            display: flex;
+        }
+    </style>
+    <div class="wrap" id="activated_users">
+        <h3>Activated Users</h3>
+        <form method="get">
+            <input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
+            
+            <?php $users_data->prepare_items(); ?>
+            <p class="search-box">
+                <?php $search = ( isset( $_REQUEST['s'] ) ) ? $_REQUEST['s'] : false; ?>
+                <label class="screen-reader-text" for="users-search-input">search:</label> 
+                <input id="users-search-input" placeholder="Search by name" type="search" name="s" value="<?php echo $search ?>" /> 
+                <input id="search-submit" class="button" type="submit" name="" value="search" />
+            </p>
+            <?php $users_data->display(); ?>
+        </form>
+    </div>
+
+    <script>
+        // Enable disable mt edits
+        jQuery(function ($) {
+            $('#doaction').on("click", function(e){
+                if(confirm("It will update where order id is same.")){
+                    return true;
+                }else{
+                    e.preventDefault();
+                }
+            })
+
+            let subscription_blocked = "<?php echo get_option('subscription_blocked') ?>";
+            let products_blocked = "<?php echo get_option('products_blocked') ?>";
+            
+            $('#doaction').after('<div class="act_checkbtns"><label for="enable_products">Enable Lifetime licenses<input type="checkbox" '+(products_blocked?"checked":"")+' data="products" id="enable_products" value="'+(products_blocked?products_blocked:0)+'"></label><label for="enable_subscription_prod">Enable Subscriptions licenses<input type="checkbox" '+(subscription_blocked?"checked":"")+' data="subscription" id="enable_subscription_prod" value="'+(subscription_blocked?subscription_blocked:0)+'"></label> </div>')
+
+            $('.act_checkbtns').find('input[type="checkbox"]').on("change", function(){
+                if($(this).val() == 1){
+                    $(this).val(0)
+                }else{
+                    $(this).val(1)
+                }
+
+                let btn = $(this);
+
+                let value = $(this).val();
+                let type = $(this).attr('data');
+                
+                $.ajax({
+                    type: "post",
+                    url: admin_ajax_action.ajaxurl,
+                    data:{
+                        action: "enable_disable_mt_edits",
+                        value: value,
+                        types: type
+                    },
+                    beforeSend: function(){
+                        btn.prop('disabled', true)
+                    },
+                    success: function (response) {
+                        location.href = response
+                    }
+                });
+            })
+        });
+    </script>
+    <?php
+}
+
+// Enable disable mt edits
+function enable_disable_mt_edits(){
+    if(isset($_POST['value']) && isset($_POST['types'])){
+        // For subscription
+        if($_POST['types'] == 'subscription'){
+            if(intval($_POST['value']) === 1){
+                update_option('subscription_blocked', 1);
+            }else{
+                delete_option('subscription_blocked');
+            }
+        }else if($_POST['types'] == 'products'){
+            if(intval($_POST['value']) === 1){
+                update_option('products_blocked', 1);
+            }else{
+                delete_option('products_blocked');
+            }
+        }
+        
+        $page_url = get_admin_url().'admin.php?page=activations';
+        echo $page_url;
+        die;
+    }
+}
 
 require_once 'inc/subsactivations-output.php';
 
@@ -242,13 +335,25 @@ function activations_post_show(){
 
 // Input component for product mtid
 function mtids_inputs($data = array()){
-    global $iam_blocked;
-    $blocked = false;
+    global $current_user, $wpdb;
+
+    $product_id = intval($data['product_id']);
+    $blocked = true;
+    $dataid = intval($data['id']);
+
     if(!empty($data['value'])){
-        $blocked =  $iam_blocked;
+        // Check block products
+        $editable = $wpdb->get_var("SELECT Editable FROM {$wpdb->prefix}lic_activations WHERE ID = $dataid AND Userid = $current_user->ID");
+
+        if(intval($editable) > 0){
+            $blocked = false;
+        }
+    }else{
+        $blocked = false;
     }
+
     $output = '';
-    $output .= '<input '.($blocked?'disabled':'').' data-id="'.$data['id'].'" class="mtids" type="number" p-id="'.$data['product_id'].'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'">';
+    $output .= '<input '.($blocked?'disabled':'').' data-id="'.$data['id'].'" class="mtids" type="number" p-id="'.$product_id.'" placeholder="'.$data['placeholder'].'" value="'.$data['value'].'" name="'.$data['name'].'">';
     return $output;
 }
 
@@ -288,77 +393,70 @@ function subsactivations_mtids_store(){
             $product_id = intval($data['product_id']);
             $values = intval($data['values']);
             $dataid = intval($data['id']);
-            $order_id = 0;
 
-            $product_variation = wc_get_product($product_id);
-            if($product_variation->get_type() == 'variation'){
-                $order_id = get_orders_from_variation($product_id);
-            }else{
-                $order_id = get_orders_ids_by_product_id($product_id);
-            }
-            
-            $order = wc_get_order( $order_id );
-            $subscriptions = wcs_get_subscriptions_for_order($order, array('order_type' => 'parent'));
+            // Check block products
+            $blocked = $wpdb->get_var("SELECT Editable FROM {$wpdb->prefix}lic_activations WHERE ID = $dataid AND Userid = $current_user->ID");
+            // If only empty mtid
+            $mtid = $wpdb->get_var("SELECT Mtid FROM {$wpdb->prefix}lic_activations WHERE ID = $dataid AND Userid = $current_user->ID");
 
-            $is_subscription = false;
-            if(!empty($subscriptions)){
-                $is_subscription = true;
-            }
+            if(intval($blocked) > 0 || intval($mtid) == 0){
+                $product_code = $wpdb->get_var("SELECT product_code FROM {$wpdb->prefix}lic_produce_info WHERE product_id = $product_id");
+                    
+                if($entryID = $wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Product_id = $product_id AND Userid = $current_user->ID AND ID = $dataid")){
+                    $before_id = $wpdb->get_var("SELECT Mtid FROM {$wpdb->prefix}lic_activations WHERE ID = $dataid");
 
-            $product_code = $wpdb->get_var("SELECT product_code FROM {$wpdb->prefix}lic_produce_info WHERE product_id = $product_id");
-                
-            if($entryID = $wpdb->get_var("SELECT ID FROM {$wpdb->prefix}lic_activations WHERE Product_id = $product_id AND Userid = $current_user->ID AND ID = $dataid")){
-                $before_id = $wpdb->get_var("SELECT Mtid FROM {$wpdb->prefix}lic_activations WHERE ID = $dataid");
+                    if($before_id !== 0){
+                        $sts = 1;
+                        if(empty($values)){
+                            $sts = 0;
+                        }
 
-                $sts = 1;
-                if(empty($values)){
-                    $sts = 0;
-                }
+                        $wpdb->update($wpdb->prefix.'lic_activations',array(
+                            'Product_id' => $product_id,
+                            'Mtid' => $values,
+                            'Status' => $sts,
+                            'Prodcode' => $product_code
+                        ),array('ID' => $entryID),array('%d','%d','%d','%s'),array('%d'));
 
-                $wpdb->update($wpdb->prefix.'lic_activations',array(
-                    'Product_id' => $product_id,
-                    'Mtid' => $values,
-                    'Status' => $sts,
-                    'Prodcode' => $product_code, 
-                    'Editable' => $is_subscription
-                ),array('ID' => $entryID),array('%d','%d','%d','%s','%d'),array('%d'));
+                        if(intval($before_id) !== intval($values)){
+                            // Send to admin
+                            if(!current_user_can( 'administrator' )){
+                                $message = $user_email. ' Changed license from '.intval($before_id).' to '.$values;
+                                wp_mail($admin_email, $subject, $message);
+                            }
 
-                if(intval($before_id) !== intval($values)){
+                            if(!$before_id || $before_id == 0){
+                                $alerts[] = 'Account <span class="number">#'. $values.'</span> is activated.';
+                            }else{
+                                $alerts[] = 'Account license changed from <span class="number">#'. $before_id .'</span> to  <span class="number">#'. $values.'</span>';
+                            }
+                            
+                        }
+                    }
+
+                }else{
+                    $insert = $wpdb->insert($wpdb->prefix.'lic_activations', array(
+                        'Product_id' => $product_id,
+                        'Userid' => $current_user->ID,
+                        'Mtid' => $values,
+                        'Status' => 1,
+                        'Prodcode' => $product_code,
+                        'Status' => 1,
+                        'UserName' => $current_user->display_name
+                    ),array('%d','%d','%d','%d','%s','%d','%s'));
+        
                     // Send to admin
                     if(!current_user_can( 'administrator' )){
-                        $message = $user_email. ' Changed license from '.intval($before_id).' to '.$values;
-                        wp_mail($admin_email, $subject, $message);
+                        $message = $user_email.' activated #'. $values.' account.';
+                        wp_mail($admin_email,$subject,$message);
                     }
 
-                    if(!$before_id || $before_id == 0){
-                        $alerts[] = 'Account <span class="number">#'. $values.'</span> is activated.';
-                    }else{
-                        $alerts[] = 'Account license changed from <span class="number">#'. $before_id .'</span> to  <span class="number">#'. $values.'</span>';
+                    if(!empty($values)){
+                        $alerts[] = 'Account <span class="number"> #'.$values.' </span> is activated.';
                     }
-                    
                 }
-
             }else{
-                $insert = $wpdb->insert($wpdb->prefix.'lic_activations', array(
-                    'Product_id' => $product_id,
-                    'Userid' => $current_user->ID,
-                    'Mtid' => $values,
-                    'Status' => 1,
-                    'Prodcode' => $product_code, 
-                    'Editable' => $is_subscription,
-                    'Status' => 1,
-                    'UserName' => $current_user->display_name
-                ),array('%d','%d','%d','%d','%s','%d','%s'));
-    
-                // Send to admin
-                if(!current_user_can( 'administrator' )){
-                    $message = $user_email.' activated #'. $values.' account.';
-                    wp_mail($admin_email,$subject,$message);
-                }
-
-                if(!empty($values)){
-                    $alerts[] = 'Account <span class="number"> #'.$values.' </span> is activated.';
-                }
+                $alerts[] = 'Some fields are locked.';
             }
         }
         
@@ -622,6 +720,17 @@ function moresell_order_processing($order){
             }
         }
 
+        $is_editable = 0;
+        if($is_subscription){
+            if(get_option('subscription_blocked')){
+                $is_editable = 1;
+            }
+        }else{
+            if(get_option('products_blocked')){
+                $is_editable = 1;
+            }
+        }
+
         if($inserted > 0 && $is_subscription){
             return true;
         }else{
@@ -630,14 +739,14 @@ function moresell_order_processing($order){
                     $wpdb->insert($wpdb->prefix.'lic_activations',array(
                         'Orderno' => $order_id,
                         'Userid' => $current_user->ID,
-                        'Editable' => $is_subscription,
+                        'Editable' => $is_editable,
                         'Status' => 1,
                         'Product_id' => $product_id,
                         'UserName' => $current_user->display_name,
                         'Prodcode' => ($product_code?$product_code:''),
                         'Modifydate' => $date,
                         'Expirytime' => ($expiration_date?$expiration_date:''),
-                    ),array('%d','%d','%d','%s','%s','%s','%s'));
+                    ),array('%d','%d','%d','%d','%d','%s','%s','%s','%s'));
                 }
             }
         }
@@ -731,46 +840,4 @@ function wp_wc_subscription_column_view($column_name)
         $user_id = $the_subscription->get_customer_id();
         echo get_activations_user_data($user_id);
     }
-}
-
-function mt_id_edit_access(){
-    if(isset($_POST['value']) && isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['value'])){
-        $user_id = intval($_POST['user_id']);
-        $option = $_POST['value'];
-
-        $hasIttems = get_option('mt_fields_edit_access');
-
-        if(!is_array($hasIttems)){
-            $hasIttems = [];
-        }
-
-        if($option == 'blocked'){
-            $hasIttems[$user_id] = 'blocked';
-        }
-
-        if($option == 'allowed'){
-            unset($hasIttems[$user_id]);
-        }
-
-        $updated = update_option( 'mt_fields_edit_access', $hasIttems );
-
-        $user = get_user_by( 'ID', $user_id );
-
-        if($option == 'blocked'){
-            $output = '<tr class="user-'.$user->ID.'">
-                <th scope="row">'.$user->ID.'</th>
-                <td>'.$user->display_name.'</td>
-                <td>'.$user->user_email.'</td>
-                <td>'.$option.'</td>
-            </tr>';
-            echo json_encode(['blocked' => $output]);
-        }else{
-            $output = '.user-'.$user->ID;
-            echo json_encode(['allowed' => $output]);
-        }
-        
-        die;
-    }
-    
-    die;
 }

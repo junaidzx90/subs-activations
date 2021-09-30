@@ -1,5 +1,14 @@
 jQuery(function ($) {
 
+    $('.ufields').find('.mtids').each(function () {
+        if ($(this).is(':disabled')) {
+            $('#subsactivations-mtidsbtn').prop('disabled', true)
+        } else {
+            $('#subsactivations-mtidsbtn').removeAttr('disabled')
+            return false;
+        }
+    });
+
     function junu_alert_info(txt,top,time) {
         setTimeout(() => {
             $('.ufields').append('<span style="margin-top:'+top+'px;" class="alert_info">'+txt+'</span>');
@@ -54,9 +63,6 @@ jQuery(function ($) {
                             time += 300;
                         });
                     });
-                    
-                    // var url = window.location.href;
-                    // $('body').load(url);
                     
                     setTimeout(() => {
                         // location.reload(); 
